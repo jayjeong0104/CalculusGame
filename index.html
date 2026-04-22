@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BC Blitz</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="vfx" aria-hidden="true"></canvas>
+
+  <main class="shell">
+    <section class="hud" aria-label="Game status">
+      <div class="brand">
+        <span class="mark">&int;</span>
+        <div>
+          <h1>BC Blitz</h1>
+          <p>AP Calculus BC</p>
+        </div>
+      </div>
+
+      <div class="meters">
+        <div class="metric">
+          <span>Score</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="metric">
+          <span>Streak</span>
+          <strong id="streak">0</strong>
+        </div>
+        <div class="metric">
+          <span>Level</span>
+          <strong id="level">1</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="arena" aria-live="polite">
+      <div class="question-topline">
+        <span id="topic">Limits</span>
+        <span id="problem-count">Problem 1</span>
+      </div>
+
+      <div class="question-card">
+        <div class="difficulty" id="difficulty" aria-label="Difficulty">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p id="question">Press start to begin.</p>
+      </div>
+
+      <div class="choices" id="choices" aria-label="Answer choices"></div>
+
+      <div class="feedback" id="feedback" aria-live="assertive"></div>
+    </section>
+
+    <section class="controls">
+      <button id="start-btn" class="primary" type="button">Start</button>
+      <button id="skip-btn" class="ghost" type="button" disabled>Skip</button>
+    </section>
+  </main>
+
+  <div class="time-track" aria-hidden="true">
+    <div id="time-bar"></div>
+    <div id="time-flash"></div>
+  </div>
+
+  <section id="game-over" class="game-over" aria-hidden="true">
+    <div class="game-over-image" role="img" aria-label="Game over image"></div>
+    <div class="game-over-copy">
+      <span>Final Score</span>
+      <strong id="final-score">0</strong>
+      <h2>GAME OVER</h2>
+      <button id="restart-btn" class="primary" type="button">Run It Back</button>
+    </div>
+  </section>
+
+  <script src="game.js"></script>
+</body>
+</html>
