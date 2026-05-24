@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TI-84 Plus CE Online</title>
+  <meta name="description" content="TI-84 Plus CE calculator emulator embedded for BC Blitz.">
+  <!--
+    Wrapper adapted from https://github.com/bifdu9898/TI84Calculator.
+    The TI-84 Plus CE emulator is loaded from TestNav/Texas Instruments assets.
+  -->
+  <link rel="stylesheet" href="https://mn.testnav.com/client/public/stylesheets/tn.css">
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: transparent !important;
+      background-color: transparent !important;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    body,
+    #calculatorDiv,
+    #calculatorDiv > div,
+    #calculatorDiv canvas,
+    #calculatorDiv svg,
+    #main_div {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+
+    #calculatorViewport {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent !important;
+    }
+
+    #calculatorDiv {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      outline: none !important;
+      transform-origin: 0 0;
+    }
+
+    #calculatorDiv::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      background: transparent;
+    }
+
+    #main_div {
+      display: none;
+    }
+  </style>
+  <script src="https://mn.testnav.com/client/texasinstruments/js/ELG-min.js"></script>
+  <script id="h84statej" type="application/json" data-url="https://mn.testnav.com/client/texasinstruments/bin/No_AppsCE.h84statej"></script>
+  <script id="ti84faceplate" type="application/json" data-url="https://mn.testnav.com/client/texasinstruments/images/TI84CE_touch.svg"></script>
+</head>
+<body>
+  <div id="calculatorViewport">
+    <div id="calculatorDiv"></div>
+  </div>
+  <div id="main_div"></div>
+
+  <script>
+    "use strict";
+
+    const fromId = (id) => document.getElementById(id);
+    const h84statej = fromId("h84statej");
+    const ti84faceplate = fromId("ti84faceplate");
+    const viewport = fromId("calculatorViewport");
+    const calcDiv = fromId("calculatorDiv");
+    const normalMaxScale = 1.12;
+    const normalWidthFit = 0.78;
+    const normalHeightFit = 0.9;
+    const fullscreenWidthFit = 0.86;
+    const fullscreenHeightFit = 0.9;
+    const fullscreenMaxScale = 1.92;
+    let fullscreenMode = false;
+
+    function measureCalculator() {
+      const previousTransform = calcDiv.style.transform;
+      calcDiv.style.transform = "none";
+
+      const divRect = calcDiv.getBoundingClientRect();
+      const rects = [];
+      const mediaCandidates = [...calcDiv.querySelectorAll("canvas, svg, img, object")];
+      const candidates = mediaCandidates.length ? mediaCandidates : [calcDiv.firstElementChild, calcDiv].filter(Boolean);
+
+      candidates.forEach((candidate) => {
+        const style = window.getComputedStyle(candidate);
+        if (style.display === "none" || style.visibility === "hidden") return;
+        const rect = candidate.getBoundingClientRect();
+        if (rect.width < 8 || rect.height < 8) return;
+        if (rect.width >= window.innerWidth * 0.96 && rect.height >= window.innerHeight * 0.96) return;
+        rects.push(rect);
+      });
+
+      if (!rects.length) rects.push(divRect);
+
+      const bounds = rects.reduce((box, rect) => ({
+        left: Math.min(box.left, rect.left),
+        top: Math.min(box.top, rect.top),
+        right: Math.max(box.right, rect.right),
+        bottom: Math.max(box.bottom, rect.bottom)
+      }), {
+        left: divRect.left,
+        top: divRect.top,
+        right: divRect.right,
+        bottom: divRect.bottom
+      });
+
+      const width = Math.max(bounds.right - bounds.left, 360);
+      const height = Math.max(bounds.bottom - bounds.top, 720);
+      const offsetX = bounds.left - divRect.left;
+      const offsetY = bounds.top - divRect.top;
+      calcDiv.style.transform = previousTransform;
+      return { width, height, offsetX, offsetY };
+    }
+
+    function getCalculatorScale(viewportRect, size) {
+      const widthFit = fullscreenMode ? fullscreenWidthFit : normalWidthFit;
+      const heightFit = fullscreenMode ? fullscreenHeightFit : normalHeightFit;
+      const fitScale = Math.min((viewportRect.width * widthFit) / size.width, (viewportRect.height * heightFit) / size.height);
+
+      if (fullscreenMode) {
+        return Math.min(fitScale, fullscreenMaxScale);
+      }
+
+      return Math.min(fitScale, normalMaxScale);
+    }
+
+    function fitCalculator() {
+      document.documentElement.style.setProperty("background", "transparent", "important");
+      document.body.style.setProperty("background", "transparent", "important");
+      document.body.style.setProperty("background-color", "transparent", "important");
+      calcDiv.style.setProperty("background", "transparent", "important");
+      calcDiv.style.setProperty("background-color", "transparent", "important");
+
+      const viewportRect = viewport.getBoundingClientRect();
+      const size = measureCalculator();
+      const calculatorScale = getCalculatorScale(viewportRect, size);
+      const left = (viewportRect.width / 2) - ((size.offsetX + (size.width / 2)) * calculatorScale);
+      const top = (viewportRect.height / 2) - ((size.offsetY + (size.height / 2)) * calculatorScale);
+
+      calcDiv.style.left = `${left}px`;
+      calcDiv.style.top = `${top}px`;
+      calcDiv.style.transform = `scale(${calculatorScale})`;
+      window.scrollTo(0, 0);
+
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "ti84:updateHeight", height: viewportRect.height }, "*");
+      }
+    }
+
+    XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {
+      apply(target, thisArg, args) {
+        if (typeof args[1] === "string") args[1] = args[1].replace(/#.*$/, "");
+        Reflect.apply(target, thisArg, args);
+      }
+    });
+
+    function createBlob(string) {
+      if (!string) return null;
+      return URL.createObjectURL(new Blob([JSON.parse(string)]));
+    }
+
+    function main() {
+      let romUrl = createBlob(h84statej.innerHTML) || h84statej.getAttribute("data-url");
+      let faceplateUrl = createBlob(ti84faceplate.innerHTML) || ti84faceplate.getAttribute("data-url");
+      romUrl += "#.h84statej";
+      faceplateUrl += "#.svg";
+
+      new TI84PCE({ ROMLocation: romUrl, FaceplateLocation: faceplateUrl });
+      window.setTimeout(fitCalculator, 100);
+      window.setTimeout(fitCalculator, 500);
+      window.setTimeout(fitCalculator, 1200);
+    }
+
+    window.addEventListener("resize", fitCalculator);
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "ti84:center") {
+        window.setTimeout(fitCalculator, 0);
+        window.setTimeout(fitCalculator, 120);
+      }
+      if (event.data && event.data.type === "ti84:fullscreen") {
+        fullscreenMode = Boolean(event.data.active);
+        window.setTimeout(fitCalculator, 0);
+        window.setTimeout(fitCalculator, 160);
+        window.setTimeout(fitCalculator, 420);
+      }
+    });
+    main();
+  </script>
+</body>
+</html>
