@@ -6,9 +6,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>BC Blitz</title>
+  <title>The Calculus Website</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
-  <link rel="stylesheet" href="styles.css?v=20260524-12">
+  <link rel="stylesheet" href="styles.css?v=20260530-28">
 </head>
 <body>
   <canvas id="vfx" aria-hidden="true"></canvas>
@@ -18,52 +18,121 @@
     <button id="nav-home" class="top-brand" type="button">
       <span class="mark">&int;</span>
       <span>
-        <strong>BC Blitz</strong>
-        <small>AP Calculus BC</small>
+        <strong>The Calculus Website</strong>
       </span>
     </button>
 
     <nav class="top-nav" aria-label="Primary">
-      <button id="nav-play" type="button">Home</button>
+      <button id="nav-play" type="button">Calc</button>
       <button id="nav-desmos" type="button">DESMOS</button>
       <button id="nav-calc" type="button">TI84</button>
-      <button id="nav-ap" type="button">AP</button>
+      <button id="nav-ap" type="button" hidden>AP</button>
       <button id="nav-study" type="button">Study</button>
       <button id="nav-developer" type="button">Developer</button>
     </nav>
   </header>
 
-  <section id="home-page" class="page home-page active">
+  <section id="landing-page" class="page landing-page active">
+    <section class="landing-panel landing-hero" aria-label="Calc home">
+      <nav class="landing-orbit-menu" aria-label="Homepage quick menu">
+        <div class="landing-orbit-wheel">
+          <button class="landing-orbit-item" type="button" data-home-target="home" aria-label="Open Calc">
+            <span class="landing-orbit-card landing-orbit-calculus">
+              <strong>CALCULUS</strong>
+            </span>
+          </button>
+          <button class="landing-orbit-item" type="button" data-home-target="desmos" aria-label="Open Desmos">
+            <span class="landing-orbit-card landing-orbit-desmos">
+              <img src="desmos.webp" alt="Desmos">
+            </span>
+          </button>
+          <button class="landing-orbit-item" type="button" data-home-target="calc" aria-label="Open TI84">
+            <span class="landing-orbit-card landing-orbit-ti">
+              <span>Graphing</span>
+              <strong>TI84</strong>
+            </span>
+          </button>
+          <button class="landing-orbit-item" type="button" data-home-target="study" aria-label="Open Study">
+            <span class="landing-orbit-card landing-orbit-study">
+              <span>AP BC</span>
+              <strong>Study</strong>
+              <i aria-hidden="true"></i>
+            </span>
+          </button>
+          <button class="landing-orbit-item" type="button" data-home-target="developer" aria-label="Open Developer information">
+            <span class="landing-orbit-card landing-orbit-info">
+              <span>i</span>
+              <strong>information</strong>
+            </span>
+          </button>
+        </div>
+      </nav>
+    </section>
+
+  </section>
+
+  <section id="home-page" class="page home-page" aria-hidden="true">
     <div class="home-copy">
-      <h2>BC Blitz</h2>
+      <h2>Calc Speedrun</h2>
     </div>
 
-    <div class="mode-grid" aria-label="Game modes">
-      <button class="mode-card" type="button" data-mode="derivative">
-        <strong>Derivative</strong>
-        <span>Power rule, chain rule, parametric rate, and limit tactics.</span>
+    <div class="blitz-launch" aria-label="Calc launch controls">
+      <button id="mode-start-btn" class="blitz-start-button" type="button">Game Start</button>
+      <button id="mode-settings-btn" class="blitz-mode-settings" type="button" aria-label="Choose game mode" aria-expanded="false" aria-controls="mode-grid">
+        <svg class="settings-gear" aria-hidden="true" viewBox="0 0 24 24">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.3 1.9h3.4l.75 3.05c.48.16.94.35 1.37.58l2.68-1.62 2.4 2.4-1.62 2.68c.23.43.42.89.58 1.37l3.05.75v3.4l-3.05.75c-.16.48-.35.94-.58 1.37l1.62 2.68-2.4 2.4-2.68-1.62c-.43.23-.89.42-1.37.58l-.75 3.05h-3.4l-.75-3.05a8.65 8.65 0 0 1-1.37-.58L5.5 21.71l-2.4-2.4 1.62-2.68a8.65 8.65 0 0 1-.58-1.37l-3.05-.75v-3.4l3.05-.75c.16-.48.35-.94.58-1.37L3.1 6.31l2.4-2.4 2.68 1.62c.43-.23.89-.42 1.37-.58l.75-3.05ZM12 16.15a4.15 4.15 0 1 0 0-8.3 4.15 4.15 0 0 0 0 8.3Z"></path>
+        </svg>
       </button>
-      <button class="mode-card" type="button" data-mode="integral">
-        <strong>Integrals</strong>
-        <span>Antiderivatives, definite integrals, and polar area.</span>
+      <span id="selected-mode-label" class="selected-mode-label" aria-live="polite">Mode: Unit 1</span>
+    </div>
+
+    <div id="mode-grid" class="mode-grid" aria-label="Game modes" hidden>
+      <button class="mode-card" type="button" data-mode="unit1" data-symbol="lim" aria-pressed="true">
+        <strong>Unit 1</strong>
+        <span>Limits and continuity.</span>
       </button>
-      <button class="mode-card" type="button" data-mode="series">
-        <strong>Infinite Series</strong>
-        <span>Geometric series, convergence, Taylor, and power series.</span>
+      <button class="mode-card" type="button" data-mode="unit2" data-symbol="d/dx" aria-pressed="false">
+        <strong>Unit 2</strong>
+        <span>Derivative definitions and basic rules.</span>
       </button>
-      <button class="mode-card all-mode" type="button" data-mode="all">
-        <strong>All Three</strong>
-        <span>Derivative, integrals, and infinite series mixed together.</span>
+      <button class="mode-card" type="button" data-mode="unit3" data-symbol="f∘g" aria-pressed="false">
+        <strong>Unit 3</strong>
+        <span>Chain rule, product rule, and composite functions.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit4" data-symbol="v(t)" aria-pressed="false">
+        <strong>Unit 4</strong>
+        <span>Contextual applications of derivatives.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit5" data-symbol="f'=0" aria-pressed="false">
+        <strong>Unit 5</strong>
+        <span>Analytical applications of derivatives.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit6" data-symbol="∫" aria-pressed="false">
+        <strong>Unit 6</strong>
+        <span>Integration and accumulation.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit7" data-symbol="dy/dx" aria-pressed="false">
+        <strong>Unit 7</strong>
+        <span>Differential equations.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit8" data-symbol="A=∫" aria-pressed="false">
+        <strong>Unit 8</strong>
+        <span>Applications of integration.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit9" data-symbol="r(θ)" aria-pressed="false">
+        <strong>Unit 9</strong>
+        <span>Parametric, polar, and vector functions.</span>
+      </button>
+      <button class="mode-card" type="button" data-mode="unit10" data-symbol="Σ" aria-pressed="false">
+        <strong>Unit 10</strong>
+        <span>Sequences, series, Taylor, and convergence.</span>
       </button>
     </div>
   </section>
 
   <section id="developer-page" class="page developer-page" aria-hidden="true">
     <div class="developer-profile">
-      <span class="page-label">Developer</span>
-      <h2>Jay Jeong</h2>
-      <p>BC Blitz was designed and built for fast AP Calculus BC practice, exact-answer discipline, and calculator fluency.</p>
-      <a href="mailto:438668@aaps.k12.mi.us">438668@aaps.k12.mi.us</a>
+      <p>This website aims to fulfill the desire to make everyone enrolled in AP Calculus BC get A+ on every tests and acquire a 5 in May. It breaks down how to use Desmos graphing calculator for AP exam, TI84 Calculator for in-class tests, and hopefully Calculus concepts to intuitive level. Calculus may be conceptually easier to understand than Pre-Calculus materials; connecting multiple concepts into one and applying them is what makes it hard for many people. However, every year, around 40% of test takers end up with a 5... Wouldn't it be sorrowful if you fail to enter top 40% in your class? I hope what I created gives some help to people who struggle with math, especially for those who struggle even under the best math teacher ever, Mr O...<br>Your day will come, and you shall find yourself in possession of 5 in July.<br>Made by Jay Jeong(438668@aaps.k12.mi.us).</p>
     </div>
 
     <div class="developer-mark" aria-hidden="true">
@@ -71,20 +140,6 @@
       <strong>BC</strong>
     </div>
 
-    <dl class="developer-notes">
-      <div>
-        <dt>Focus</dt>
-        <dd>derivatives, integrals, infinite series, DESMOS input, and TI84 practice</dd>
-      </div>
-      <div>
-        <dt>Interface</dt>
-        <dd>built around speed, readable math, and exact AP-style notation</dd>
-      </div>
-      <div>
-        <dt>Contact</dt>
-        <dd>Made by Jay Jeong</dd>
-      </div>
-    </dl>
   </section>
 
   <section id="desmos-page" class="page desmos-page" aria-hidden="true">
@@ -113,7 +168,8 @@
 
       <div class="desmos-actions">
         <button id="desmos-start" class="primary" type="button">Start</button>
-        <button id="desmos-guide-toggle" class="ultimate-guide-button" type="button" aria-expanded="false" aria-controls="desmos-guide">ultimate guide</button>
+        <span id="desmos-score" class="desmos-score" aria-live="polite" hidden>Score: 0</span>
+        <button id="desmos-guide-toggle" class="ultimate-guide-button" type="button" aria-expanded="false" aria-controls="desmos-guide">desmos tutorial</button>
       </div>
     </div>
 
@@ -129,6 +185,9 @@
           <div id="words" class="math-typing-words" aria-live="polite"></div>
           <input id="wordsInput" class="math-typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type math expression">
         </div>
+
+        <div id="math-typing-keyboard" class="math-typing-keyboard" aria-label="Next key guide" aria-live="polite"></div>
+        <div id="math-typing-key-hint" class="math-typing-key-hint" aria-live="polite">next key: </div>
 
         <section id="mathTypingResult" class="math-typing-result" aria-label="Typing practice result" tabindex="-1" hidden>
           <div class="math-result-stats">
@@ -156,56 +215,38 @@
           <div id="math-typing-result-words" class="math-result-words" aria-label="Typed word history"></div>
         </section>
 
-        <button id="restartTestButton" class="math-typing-restart" type="button" aria-label="Restart typing practice">restart[enter]</button>
+        <button id="restartTestButton" class="math-typing-restart" type="button" aria-label="Restart typing practice">restart[tab]</button>
       </div>
     </section>
 
     <section class="desmos-settings-panel desmos-mode-panel" data-desmos-panel="settings" aria-label="Desmos settings" hidden>
       <div class="desmos-settings-list">
-        <button id="desmos-hide-answer-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle Desmos answer box">
+        <button id="desmos-hide-answer-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle Desmos font box">
           <span class="switch-track" aria-hidden="true">
             <span class="switch-thumb"></span>
           </span>
-          <strong>Hide Desmos Answer Box</strong>
+          <strong>Hide Desmos Font Box</strong>
         </button>
 
-        <button id="desmos-timebar-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle Desmos timebar system">
+        <button id="desmos-timebar-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle speedrun timer">
           <span class="switch-track" aria-hidden="true">
             <span class="switch-thumb"></span>
           </span>
-          <strong>Timebar System</strong>
+          <strong>Measure Time for Speedrun</strong>
         </button>
-
-        <div class="desmos-difficulty-setting" aria-label="Speedrun difficulty">
-          <span>Speedrun Difficulty</span>
-          <div class="desmos-difficulty-options">
-            <button type="button" data-speedrun-difficulty="easy">easy</button>
-            <button type="button" data-speedrun-difficulty="normal">normal</button>
-            <button type="button" data-speedrun-difficulty="hard">hard</button>
-          </div>
-        </div>
-
-        <div class="desmos-difficulty-setting" aria-label="Typing practice difficulty">
-          <span>Typing Practice Difficulty</span>
-          <div class="desmos-difficulty-options">
-            <button type="button" data-typing-difficulty="easy">easy</button>
-            <button type="button" data-typing-difficulty="normal">normal</button>
-            <button type="button" data-typing-difficulty="hard">hard</button>
-          </div>
-        </div>
       </div>
     </section>
 
     <section id="desmos-guide" class="desmos-guide-panel" aria-label="Desmos keyboard input guide" hidden>
       <div class="desmos-guide-header">
         <div>
-          <span class="page-label">Ultimate Guide</span>
+          <span class="page-label">Desmos Tutorial</span>
           <h2>Keyboard Inputs</h2>
         </div>
-        <button id="desmos-guide-close" class="guide-close-button" type="button" aria-label="Close ultimate guide">Close</button>
+        <button id="desmos-guide-close" class="guide-close-button" type="button" aria-label="Close desmos tutorial">Close</button>
       </div>
 
-      <p class="desmos-guide-impact">Impact: using TI84 in AP exam is not recommended, since it takes way more time to type and draw graphs.</p>
+      <p class="desmos-guide-impact">Using TI84 in AP exam is not recommended, since it takes way more time to type and draw graphs.</p>
 
       <div class="desmos-ledger">
         <article class="desmos-guide-row">
@@ -220,7 +261,7 @@
             <h3>Integral Sign</h3>
             <span class="desmos-expression" data-latex="\int_1^2 x dx"></span>
           </div>
-          <code>type int, then bounds: int_1^2 x dx</code>
+          <code>int &rarr; 1 &uarr; 2 &rarr; x dx</code>
         </article>
         <article class="desmos-guide-row">
           <div>
@@ -246,7 +287,7 @@
         <article class="desmos-guide-row">
           <div>
             <h3>Theta</h3>
-            <span class="desmos-expression" data-latex="\theta"></span>
+            <span class="desmos-expression" data-latex="\operatorname{theta}"></span>
           </div>
           <code>theta</code>
         </article>
@@ -281,7 +322,7 @@
         <article class="desmos-guide-row">
           <div>
             <h3>Polar</h3>
-            <span class="desmos-expression" data-latex="r=2\sin(3\theta)"></span>
+            <span class="desmos-expression" data-latex="r=2\sin(3\operatorname{theta})"></span>
           </div>
           <code>r=2sin(3theta)</code>
         </article>
@@ -295,7 +336,7 @@
         <article class="desmos-guide-row">
           <div>
             <h3>Pi</h3>
-            <span class="desmos-expression" data-latex="\pi x"></span>
+            <span class="desmos-expression" data-latex="\operatorname{pi} x"></span>
           </div>
           <code>pi x</code>
         </article>
@@ -311,140 +352,171 @@
   </section>
 
   <section id="study-page" class="page study-page" aria-hidden="true">
-    <div class="study-header">
-      <span class="page-label">Study</span>
-      <h2>BC Quick Sheet</h2>
-    </div>
+    <aside class="study-side-tabs" aria-label="Study section selector">
+      <button class="study-side-tab active" type="button" data-study-mode="study" aria-pressed="true">study</button>
+      <button class="study-side-tab" type="button" data-study-mode="ap" aria-pressed="false">AP</button>
+    </aside>
 
-    <section class="study-aim-board" aria-label="Study target logos">
-      <div class="study-aim-column">
-        <div class="study-logo-triangle" aria-label="UCLA, CMU, Michigan Engineering, and Stanford">
-          <a class="college-logo" href="https://samueli.ucla.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open UCLA Samueli School of Engineering website">
-            <img class="study-logo-img" src="ucla.jfif" alt="UCLA">
-          </a>
-          <a class="college-logo" href="https://www.cmu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Carnegie Mellon University website">
-            <img class="study-logo-img" src="wordmarksquare-red-600x600.png" alt="Carnegie Mellon University">
-          </a>
-          <a class="college-logo" href="https://www.engin.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Engineering website">
-            <img class="study-logo-img" src="images.png" alt="Michigan Engineering">
-          </a>
-          <a class="college-logo" href="https://engineering.stanford.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Stanford Engineering website">
-            <img class="study-logo-img" src="stanford.jfif" alt="Stanford University">
-          </a>
+    <section class="study-mode-panel active" data-study-panel="study">
+      <section class="study-aim-board" aria-label="Study target logos">
+        <div class="study-aim-column">
+          <div class="study-logo-triangle" aria-label="UCLA, CMU, Michigan Engineering, and Stanford">
+            <a class="college-logo" href="https://samueli.ucla.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open UCLA Samueli School of Engineering website">
+              <img class="study-logo-img" src="ucla.jfif" alt="UCLA">
+            </a>
+            <a class="college-logo" href="https://www.cmu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Carnegie Mellon University website">
+              <img class="study-logo-img" src="wordmarksquare-red-600x600.png" alt="Carnegie Mellon University">
+            </a>
+            <a class="college-logo" href="https://www.engin.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Engineering website">
+              <img class="study-logo-img" src="images.png" alt="Michigan Engineering">
+            </a>
+            <a class="college-logo" href="https://engineering.stanford.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Stanford Engineering website">
+              <img class="study-logo-img" src="stanford.jfif" alt="Stanford University">
+            </a>
+          </div>
+          <strong>5</strong>
         </div>
-        <strong>5</strong>
-      </div>
 
-      <div class="study-aim-column">
-        <div class="study-logo-triangle" aria-label="Michigan Ross, MSU, and Georgia Tech">
-          <a class="college-logo" href="https://michiganross.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Ross website">
-            <img class="study-logo-img" src="unnamed.jpg" alt="Michigan Ross">
-          </a>
-          <a class="college-logo" href="https://msu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan State University website">
-            <img class="study-logo-img" src="Michigan_State_Athletics_logo.png.svg" alt="Michigan State University">
-          </a>
-          <a class="college-logo" href="https://www.gatech.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Georgia Tech website">
-            <img class="study-logo-img" src="Georgia_Tech_Yellow_Jackets_logo.svg.png" alt="Georgia Tech">
-          </a>
-          <a class="college-logo" href="https://www.iu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Indiana University website">
-            <img class="study-logo-img" src="Indiana_Hoosiers_logo.svg.png" alt="Indiana University">
-          </a>
+        <div class="study-aim-column">
+          <div class="study-logo-triangle" aria-label="Michigan Ross, MSU, and Georgia Tech">
+            <a class="college-logo" href="https://michiganross.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Ross website">
+              <img class="study-logo-img" src="unnamed.jpg" alt="Michigan Ross">
+            </a>
+            <a class="college-logo" href="https://msu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan State University website">
+              <img class="study-logo-img" src="Michigan_State_Athletics_logo.png.svg" alt="Michigan State University">
+            </a>
+            <a class="college-logo" href="https://www.gatech.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Georgia Tech website">
+              <img class="study-logo-img" src="Georgia_Tech_Yellow_Jackets_logo.svg.png" alt="Georgia Tech">
+            </a>
+            <a class="college-logo" href="https://www.iu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Indiana University website">
+              <img class="study-logo-img" src="Indiana_Hoosiers_logo.svg.png" alt="Indiana University">
+            </a>
+          </div>
+          <strong>4</strong>
         </div>
-        <strong>4</strong>
-      </div>
 
-      <div class="study-aim-column study-aim-text">
-        <div class="study-logo-triangle study-future-grid" aria-label="NBA, NFL, U.S. Army, and AP Nap">
-          <a class="future-logo-tile" href="https://www.nba.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NBA website">
-            <img class="study-logo-img tall-logo-img" src="National_Basketball_Association_logo.png" alt="NBA">
-          </a>
-          <a class="future-logo-tile" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NFL website">
-            <img class="study-logo-img" src="National_Football_League_logo.png" alt="NFL">
-          </a>
-          <a class="future-logo-tile" href="https://www.army.mil/" target="_blank" rel="noopener noreferrer" aria-label="Open U.S. Army website">
-            <img class="study-logo-img" src="Mark_of_the_United_States_Army.svg.png" alt="U.S. Army">
-          </a>
-          <a class="future-logo-tile" href="https://cvhsnews.org/20482/satire/college-board-introduces-ap-nap-course-student-approval-is-nowhere-to-be-seen/" target="_blank" rel="noopener noreferrer" aria-label="Open AP Nap article">
-            <img class="study-logo-img" src="ap-nap-clean.png?v=20260524-3" alt="AP Nap">
-          </a>
+        <div class="study-aim-column study-aim-text">
+          <div class="study-logo-triangle study-future-grid" aria-label="NBA, NFL, U.S. Army, and AP Nap">
+            <a class="future-logo-tile" href="https://www.nba.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NBA website">
+              <img class="study-logo-img tall-logo-img" src="National_Basketball_Association_logo.png" alt="NBA">
+            </a>
+            <a class="future-logo-tile" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NFL website">
+              <img class="study-logo-img" src="National_Football_League_logo.png" alt="NFL">
+            </a>
+            <a class="future-logo-tile" href="https://www.army.mil/" target="_blank" rel="noopener noreferrer" aria-label="Open U.S. Army website">
+              <img class="study-logo-img" src="Mark_of_the_United_States_Army.svg.png" alt="U.S. Army">
+            </a>
+            <a class="future-logo-tile" href="https://cvhsnews.org/20482/satire/college-board-introduces-ap-nap-course-student-approval-is-nowhere-to-be-seen/" target="_blank" rel="noopener noreferrer" aria-label="Open AP Nap article">
+              <img class="study-logo-img" src="ap-nap-clean.png?v=20260524-3" alt="AP Nap">
+            </a>
+          </div>
+          <strong>1</strong>
         </div>
-        <strong>1</strong>
-      </div>
+      </section>
+
     </section>
 
-    <div class="study-flow" aria-label="AP Calculus BC study guide">
-      <section class="study-thread">
-        <header>
-          <span>01</span>
-          <h3>Derivatives</h3>
-        </header>
-        <ul>
-          <li><span data-latex="\frac{d}{dx}x^n=nx^{n-1}"></span><p>Power, product, quotient, chain, implicit, inverse, and logarithmic differentiation.</p></li>
-          <li><span data-latex="\frac{dy}{dx}=\frac{dy/dt}{dx/dt}"></span><p>Parametric slope and concavity come from differentiating with respect to the parameter.</p></li>
-          <li><span data-latex="\frac{dy}{dx}=\frac{r'\sin\theta+r\cos\theta}{r'\cos\theta-r\sin\theta}"></span><p>Polar derivatives combine radius and angle change.</p></li>
-        </ul>
-      </section>
+    <section class="study-mode-panel study-ap-panel" data-study-panel="ap" hidden>
+      <div class="ap-resource-stack" aria-label="AP Calculus BC information links">
+        <p class="ap-resource-note">data may differ every year, click to see the official page</p>
 
-      <section class="study-thread">
-        <header>
-          <span>02</span>
-          <h3>Integrals</h3>
-        </header>
-        <ul>
-          <li><span data-latex="\int_a^b f(x)\,dx=F(b)-F(a)"></span><p>Definite integrals measure accumulation, signed area, average value, and net change.</p></li>
-          <li><span data-latex="\int u\,dv=uv-\int v\,du"></span><p>Use substitution, parts, partial fractions, and calculator-supported numerical setup.</p></li>
-          <li><span data-latex="A=\frac12\int_\alpha^\beta r^2\,d\theta"></span><p>Polar area and volume problems depend on a clean setup before evaluation.</p></li>
-        </ul>
-      </section>
+        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/courses/ap-calculus-bc/assessment" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC general assessment information">
+          <span>General Information</span>
+          <img src="general%20information%20about%20the%20exam.jpg" alt="AP Calculus BC general exam information">
+        </a>
 
-      <section class="study-thread">
-        <header>
-          <span>03</span>
-          <h3>Series</h3>
-        </header>
-        <ul>
-          <li><span data-latex="\sum_{n=0}^{\infty}ar^n=\frac{a}{1-r}"></span><p>Geometric, p-series, comparison, limit comparison, ratio, and alternating tests.</p></li>
-          <li><span data-latex="R=\frac{1}{\lim\left|\frac{a_{n+1}}{a_n}\right|}"></span><p>Find radius and interval, then check endpoints separately.</p></li>
-          <li><span data-latex="f(x)\approx\sum_{n=0}^{k}\frac{f^{(n)}(a)}{n!}(x-a)^n"></span><p>Taylor polynomials require center, degree, coefficient pattern, and error reasoning.</p></li>
-        </ul>
-      </section>
+        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution">
+          <span>AP Score Distribution</span>
+          <img src="past%20score%20distribution.jpg" alt="AP Calculus BC score distribution">
+        </a>
 
-      <section class="study-thread">
-        <header>
-          <span>04</span>
-          <h3>Exam Moves</h3>
-        </header>
-        <ul>
-          <li><span data-latex="\text{units}=\frac{\text{output}}{\text{input}}"></span><p>State variables, include units, and answer in the context of the problem.</p></li>
-          <li><span data-latex="f'(x)=0\quad\text{or undefined}"></span><p>For extrema and intervals, use a sign chart or a derivative justification.</p></li>
-          <li><span data-latex="\text{setup}\rightarrow\text{evaluate}\rightarrow\text{interpret}"></span><p>Write the mathematical setup before touching the calculator.</p></li>
-        </ul>
-      </section>
-    </div>
-  </section>
-
-  <section id="ap-page" class="page ap-page" aria-hidden="true">
-    <div class="ap-resource-stack" aria-label="AP Calculus BC information links">
-      <p class="ap-resource-note">data may differ every year, click to see the official page</p>
-
-      <a class="ap-resource-card" href="https://apstudents.collegeboard.org/courses/ap-calculus-bc/assessment" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC general assessment information">
-        <span>General Information</span>
-        <img src="general%20information%20about%20the%20exam.jpg" alt="AP Calculus BC general exam information">
-      </a>
-
-      <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution">
-        <span>AP Score Distribution</span>
-        <img src="past%20score%20distribution.jpg" alt="AP Calculus BC score distribution">
-      </a>
-
-      <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution by unit">
-        <span>Score Distribution Per Unit</span>
-        <img src="score%20distribution%20per%20unit.jpg" alt="AP Calculus BC score distribution per unit">
-      </a>
-    </div>
+        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution by unit">
+          <span>Score Distribution Per Unit</span>
+          <img src="score%20distribution%20per%20unit.jpg" alt="AP Calculus BC score distribution per unit">
+        </a>
+      </div>
+    </section>
   </section>
 
   <section id="calc-page" class="page calc-page" aria-hidden="true">
+    <button id="ti84-guide-toggle" class="ti84-guide-toggle" type="button" aria-label="Open TI84 AP guide" aria-expanded="false" aria-controls="ti84-guide">
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M4.5 5.8c0-.8.65-1.45 1.45-1.45h3.7c1.42 0 2.6.98 2.85 2.3v13.1c-.62-.78-1.58-1.25-2.62-1.25H5.95c-.8 0-1.45-.65-1.45-1.45V5.8Z"></path>
+        <path d="M19.5 5.8c0-.8-.65-1.45-1.45-1.45h-3.7c-1.42 0-2.6.98-2.85 2.3v13.1c.62-.78 1.58-1.25 2.62-1.25h3.93c.8 0 1.45-.65 1.45-1.45V5.8Z"></path>
+        <path d="M7.25 8.5h2.3"></path>
+        <path d="M7.25 11.35h2.3"></path>
+        <path d="M14.45 8.5h2.3"></path>
+        <path d="M14.45 11.35h2.3"></path>
+      </svg>
+    </button>
+
+    <aside id="ti84-guide" class="ti84-guide-panel" aria-label="TI84 AP Calculus BC button guide" hidden>
+      <article class="ti84-guide-card">
+        <h3>Derivative At x</h3>
+        <div class="ti84-key-sequence" aria-label="Math, 8 nDeriv, type expression">
+          <span class="ti84-key" data-ti84-key="math" aria-label="Math"></span>
+          <span class="ti84-key" data-ti84-key="eight" aria-label="8"></span>
+          <span class="ti84-menu-choice" aria-label="Menu item nDeriv">nDeriv(</span>
+          <span class="ti84-key" data-ti84-key="xvar" aria-label="X, T, theta, N"></span>
+        </div>
+      </article>
+
+      <article class="ti84-guide-card">
+        <h3>Definite Integral</h3>
+        <div class="ti84-key-sequence" aria-label="Math, 9 fnInt, type expression">
+          <span class="ti84-key" data-ti84-key="math" aria-label="Math"></span>
+          <span class="ti84-key" data-ti84-key="nine" aria-label="9"></span>
+          <span class="ti84-menu-choice" aria-label="Menu item fnInt">fnInt(</span>
+          <span class="ti84-key" data-ti84-key="xvar" aria-label="X, T, theta, N"></span>
+        </div>
+      </article>
+
+      <article class="ti84-guide-card">
+        <h3>Substitution</h3>
+        <div class="ti84-key-sequence" aria-label="Alpha, trace, choose Y1, type parentheses and a number">
+          <span class="ti84-key" data-ti84-key="alpha" aria-label="Alpha"></span>
+          <span class="ti84-key" data-ti84-key="trace" aria-label="Trace and Calc"></span>
+          <span class="ti84-menu-choice" aria-label="Function Y1">Y1</span>
+          <span class="ti84-key" data-ti84-key="left-paren" aria-label="Left parenthesis"></span>
+          <span class="ti84-menu-choice" aria-label="Number to substitute">number</span>
+          <span class="ti84-key" data-ti84-key="right-paren" aria-label="Right parenthesis"></span>
+        </div>
+      </article>
+
+      <article class="ti84-guide-card">
+        <h3>Zero / Root</h3>
+        <div class="ti84-key-sequence" aria-label="Graph, second, trace, 2 zero, then choose bounds">
+          <span class="ti84-key" data-ti84-key="graph" aria-label="Graph"></span>
+          <span class="ti84-key" data-ti84-key="second" aria-label="2nd"></span>
+          <span class="ti84-key" data-ti84-key="trace" aria-label="Trace"></span>
+          <span class="ti84-key" data-ti84-key="two" aria-label="2"></span>
+          <span class="ti84-menu-choice" aria-label="Choose left bound, right bound, and guess">bounds</span>
+        </div>
+      </article>
+
+      <article class="ti84-guide-card">
+        <h3>Intersection</h3>
+        <div class="ti84-key-sequence" aria-label="Graph, second, trace, 5 intersect">
+          <span class="ti84-key" data-ti84-key="graph" aria-label="Graph"></span>
+          <span class="ti84-key" data-ti84-key="second" aria-label="2nd"></span>
+          <span class="ti84-key" data-ti84-key="trace" aria-label="Trace"></span>
+          <span class="ti84-key" data-ti84-key="five" aria-label="5"></span>
+        </div>
+      </article>
+
+      <article class="ti84-guide-card">
+        <h3>Min / Max</h3>
+        <div class="ti84-key-sequence" aria-label="Graph, second, trace, 3 minimum or 4 maximum, then choose bounds">
+          <span class="ti84-key" data-ti84-key="graph" aria-label="Graph"></span>
+          <span class="ti84-key" data-ti84-key="second" aria-label="2nd"></span>
+          <span class="ti84-key" data-ti84-key="trace" aria-label="Trace"></span>
+          <span class="ti84-key" data-ti84-key="three" aria-label="3"></span>
+          <span class="ti84-key" data-ti84-key="four" aria-label="4"></span>
+          <span class="ti84-menu-choice" aria-label="Choose left bound, right bound, and guess">bounds</span>
+        </div>
+      </article>
+    </aside>
+
     <div class="ti84-panel" aria-label="TI-84 Plus CE calculator">
       <button id="ti84-fullscreen" class="ti84-fullscreen" type="button" aria-label="Open TI84 fullscreen" title="Fullscreen">
         <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -460,7 +532,7 @@
         title="TI-84 Plus CE calculator"
         allowtransparency="true"
         allowfullscreen
-        src="ti84calc.html?v=20260524-2"></iframe>
+        src="ti84calc.html?v=20260525-4"></iframe>
     </div>
 
   </section>
@@ -470,8 +542,7 @@
       <div class="brand">
         <span class="mark">&int;</span>
         <div>
-          <h1>BC Blitz</h1>
-          <p>AP Calculus BC</p>
+          <h1>The Calculus Website</h1>
         </div>
       </div>
 
@@ -597,6 +668,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
   <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=4435f284d2154cf48e80abbbffc842cd"></script>
-  <script src="game.js?v=20260524-7"></script>
+  <script src="game.js?v=20260530-28"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ const types = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".jfif": "image/jpeg",
+  ".webp": "image/webp",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",

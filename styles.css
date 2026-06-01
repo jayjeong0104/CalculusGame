@@ -432,14 +432,37 @@ body.light-mode .desmos-guide-row h3 {
 }
 
 .floating-formula.integral-formula {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08em;
   contain: layout style;
   overflow: visible;
+  font-family: "MathJax TeX Main", Symbola, "Cambria Math", "STIX Two Math", "Times New Roman", serif;
+  font-weight: 600;
   filter:
     drop-shadow(0 0 16px rgba(255, 216, 102, 0.72))
     drop-shadow(0 0 34px rgba(49, 183, 214, 0.28));
   text-shadow:
     0 0 18px rgba(255, 216, 102, 0.58),
     0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.floating-integral-symbol {
+  display: inline-block;
+  font-family: Symbola, "Cambria Math", "STIX Two Math", "MathJax TeX Main", "Times New Roman", serif;
+  font-size: 1.9em;
+  line-height: 0.65;
+  transform: translateY(0.04em) scaleX(0.92);
+  transform-origin: center center;
+}
+
+.floating-integral-body {
+  display: inline-block;
+  font-family: "Computer Modern Math Italic", "MathJax TeX Math Italic", "Cambria Math", "STIX Two Math", Georgia, serif;
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .floating-formula.integral-formula .mq-int,
@@ -598,10 +621,552 @@ body.light-mode .desmos-guide-row h3 {
   display: grid;
 }
 
+.landing-page {
+  display: none;
+  width: 100vw;
+  height: calc(100vh - 78px);
+  min-height: 0;
+  margin: 78px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y proximity;
+  color: var(--chalk);
+  scrollbar-color: rgba(239, 185, 56, 0.7) rgba(255, 255, 255, 0.08);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.landing-page.active {
+  display: block;
+}
+
+.landing-panel {
+  position: relative;
+  display: grid;
+  align-content: center;
+  width: min(1360px, calc(100vw - 36px));
+  min-height: calc(100vh - 132px);
+  margin: 0 auto;
+  scroll-snap-align: start;
+  padding: clamp(28px, 5vw, 72px) clamp(4px, 2vw, 24px);
+  isolation: isolate;
+}
+
+.landing-panel::before {
+  position: absolute;
+  inset: clamp(18px, 3vw, 42px) 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  border-top: 1px solid rgba(245, 241, 231, 0.14);
+  border-bottom: 1px solid rgba(245, 241, 231, 0.08);
+  opacity: 0.72;
+}
+
+.landing-hero {
+  min-height: calc(100vh - 132px);
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 0;
+  align-items: center;
+}
+
+.landing-hero-copy {
+  min-width: 0;
+}
+
+.landing-kicker {
+  width: fit-content;
+  margin-bottom: clamp(14px, 2vw, 22px);
+  color: var(--gold);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(0.82rem, 1.1vw, 1.05rem);
+  line-height: 1.2;
+}
+
+.landing-hero h1,
+.landing-feature h2 {
+  margin: 0;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  letter-spacing: 0;
+  text-shadow: 0 16px 42px rgba(0, 0, 0, 0.34);
+}
+
+.landing-hero h1 {
+  max-width: 9ch;
+  font-size: clamp(4.2rem, 12vw, 12rem);
+  line-height: 0.78;
+}
+
+.landing-hero p,
+.landing-feature p {
+  max-width: 760px;
+  margin: clamp(18px, 2.2vw, 28px) 0 0;
+  color: rgba(245, 241, 231, 0.82);
+  font-size: clamp(1.02rem, 1.55vw, 1.42rem);
+  font-weight: 720;
+  line-height: 1.48;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(24px, 3vw, 36px);
+}
+
+.landing-actions button,
+.landing-feature button {
+  min-height: 50px;
+  border: 1px solid rgba(245, 241, 231, 0.22);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0;
+  transition: transform 160ms ease, color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.landing-primary {
+  min-width: 160px;
+  color: #10110f;
+  background: var(--gold);
+}
+
+.landing-secondary,
+.landing-feature button {
+  min-width: 158px;
+  color: var(--chalk);
+  background: rgba(245, 241, 231, 0.08);
+}
+
+.landing-actions button:hover,
+.landing-actions button:focus-visible,
+.landing-feature button:hover,
+.landing-feature button:focus-visible {
+  outline: 0;
+  border-color: rgba(49, 183, 214, 0.72);
+  transform: translateY(-3px);
+}
+
+.landing-orbit-menu {
+  --orbit-radius: clamp(240px, 27vw, 455px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 1320px);
+  min-height: clamp(560px, 70vh, 760px);
+  perspective: 1450px;
+  transform-style: preserve-3d;
+  isolation: isolate;
+}
+
+.landing-orbit-wheel {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.landing-orbit-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(308px, 26vw, 430px);
+  min-height: 150px;
+  padding: 0;
+  border: 0;
+  color: var(--chalk);
+  background: transparent;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.landing-orbit-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 150px;
+  padding: 26px 34px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 241, 231, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(13, 21, 18, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 22px 58px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(14px);
+  transform-origin: center;
+  will-change: transform;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.landing-orbit-item:hover,
+.landing-orbit-item:focus-visible {
+  outline: 0;
+}
+
+.landing-orbit-item:hover .landing-orbit-card,
+.landing-orbit-item:focus-visible .landing-orbit-card {
+  border-color: rgba(239, 185, 56, 0.78);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    rgba(28, 42, 36, 0.88);
+}
+
+.landing-orbit-number {
+  color: var(--gold);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.96rem;
+  line-height: 1;
+}
+
+.landing-orbit-item strong {
+  overflow: hidden;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(1.6rem, 2.25vw, 2.36rem);
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.light-mode .landing-orbit-card {
+  color: #18211e;
+  border-color: rgba(20, 24, 21, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.42)),
+    rgba(255, 255, 255, 0.78);
+}
+
+.landing-orbit-calculus {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 2px;
+  min-height: 176px;
+  padding: 12px 24px;
+  color: #201d18;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(241, 232, 207, 0.88)),
+    #f5f1e7;
+}
+
+.landing-orbit-calculus strong {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.08rem, 4.68vw, 4.9rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.64;
+  transform: scaleY(2.24);
+  transform-origin: center;
+}
+
+.landing-orbit-desmos {
+  min-height: 186px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.landing-orbit-desmos img {
+  display: block;
+  width: 100%;
+  height: 186px;
+  object-fit: fill;
+}
+
+.landing-orbit-item:hover .landing-orbit-desmos,
+.landing-orbit-item:focus-visible .landing-orbit-desmos {
+  border-color: transparent;
+  background: transparent;
+}
+
+.landing-orbit-item:hover .landing-orbit-calculus,
+.landing-orbit-item:focus-visible .landing-orbit-calculus {
+  border-color: rgba(245, 241, 231, 0.22);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(241, 232, 207, 0.88)),
+    #f5f1e7;
+}
+
+.landing-orbit-item:hover .landing-orbit-study,
+.landing-orbit-item:focus-visible .landing-orbit-study {
+  border-color: rgba(245, 241, 231, 0.22);
+  background:
+    linear-gradient(135deg, rgba(239, 185, 56, 0.95), rgba(31, 178, 109, 0.84) 52%, rgba(49, 183, 214, 0.82)),
+    #1b2d29;
+}
+
+.landing-orbit-item:hover .landing-orbit-ti,
+.landing-orbit-item:focus-visible .landing-orbit-ti {
+  border-color: rgba(245, 241, 231, 0.22);
+  background:
+    linear-gradient(90deg, rgba(65, 214, 120, 0.22) 1px, transparent 1px),
+    linear-gradient(rgba(65, 214, 120, 0.18) 1px, transparent 1px),
+    linear-gradient(160deg, rgba(14, 19, 16, 0.98), rgba(27, 42, 34, 0.92));
+  background-size: 16px 16px, 16px 16px, auto;
+}
+
+.landing-orbit-ti {
+  grid-template-columns: 1fr;
+  gap: 4px;
+  color: #e7f4e9;
+  background:
+    linear-gradient(90deg, rgba(65, 214, 120, 0.22) 1px, transparent 1px),
+    linear-gradient(rgba(65, 214, 120, 0.18) 1px, transparent 1px),
+    linear-gradient(160deg, rgba(14, 19, 16, 0.98), rgba(27, 42, 34, 0.92));
+  background-size: 16px 16px, 16px 16px, auto;
+}
+
+.landing-orbit-ti span {
+  color: rgba(148, 242, 174, 0.72);
+  font: 700 0.96rem "Courier New", monospace;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.landing-orbit-ti strong {
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: clamp(2.2rem, 3.32vw, 3.22rem);
+  font-weight: 900;
+}
+
+.landing-orbit-study {
+  grid-template-columns: 1fr;
+  gap: 4px;
+  color: #fff7d8;
+  background:
+    linear-gradient(135deg, rgba(239, 185, 56, 0.95), rgba(31, 178, 109, 0.84) 52%, rgba(49, 183, 214, 0.82)),
+    #1b2d29;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 24px 58px rgba(31, 178, 109, 0.28);
+}
+
+.landing-orbit-study::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.13) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.38;
+}
+
+.landing-orbit-study span,
+.landing-orbit-study strong {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-orbit-study span {
+  color: rgba(16, 17, 15, 0.68);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.92rem;
+}
+
+.landing-orbit-study strong {
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(1.92rem, 2.94vw, 2.92rem);
+  text-shadow: 0 4px 0 rgba(16, 17, 15, 0.22);
+}
+
+.landing-orbit-study i {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(16, 17, 15, 0.55);
+  box-shadow: inset 48px 0 0 rgba(255, 255, 255, 0.72);
+}
+
+.landing-orbit-info {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 14px;
+  color: #f5f1e7;
+  background:
+    linear-gradient(160deg, rgba(12, 16, 18, 0.96), rgba(45, 49, 53, 0.9)),
+    #1b1f22;
+}
+
+.landing-orbit-info span {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(245, 241, 231, 0.42);
+  border-radius: 50%;
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.92rem;
+  font-style: italic;
+  line-height: 1;
+}
+
+.landing-orbit-info strong {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.22rem, 1.58vw, 1.58rem);
+  font-weight: 850;
+  line-height: 1;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.landing-preview {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  min-height: 360px;
+  padding-left: clamp(16px, 3vw, 42px);
+  border-left: 1px solid rgba(245, 241, 231, 0.18);
+}
+
+.landing-preview-line {
+  width: min(100%, 420px);
+  padding: clamp(16px, 2vw, 22px);
+  border: 1px solid rgba(245, 241, 231, 0.2);
+  border-radius: 8px;
+  color: #10110f;
+  background: rgba(255, 255, 255, 0.92);
+  font-family: "MathJax TeX Main", "Times New Roman", serif;
+  font-size: clamp(1.4rem, 2.5vw, 2.45rem);
+  line-height: 1.1;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  transform: translateX(var(--shift, 0));
+  animation: landingFloat 5.6s ease-in-out infinite;
+}
+
+.landing-preview-line:nth-child(2) {
+  --shift: 34px;
+  animation-delay: -1.8s;
+}
+
+.landing-preview-line:nth-child(3) {
+  --shift: -18px;
+  animation-delay: -3.1s;
+}
+
+.landing-feature {
+  grid-template-columns: minmax(0, 900px);
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+}
+
+.landing-feature p {
+  max-width: 900px;
+  margin: 0;
+  font-size: clamp(1.18rem, 2.05vw, 1.82rem);
+}
+
+.landing-message {
+  display: block;
+  min-height: auto;
+  padding: clamp(34px, 6vw, 76px) max(22px, calc((100vw - 980px) / 2)) clamp(60px, 8vw, 100px);
+  color: var(--chalk);
+}
+
+.landing-message p {
+  max-width: 980px;
+  margin: 0;
+  color: rgba(245, 241, 231, 0.88);
+  font-size: clamp(1.08rem, 1.55vw, 1.52rem);
+  font-weight: 720;
+  line-height: 1.58;
+}
+
+.landing-feature > div {
+  display: grid;
+  gap: 12px;
+}
+
+.landing-feature span {
+  color: var(--gold);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.92rem;
+}
+
+.landing-feature h2 {
+  font-size: clamp(3rem, 7.4vw, 7.4rem);
+  line-height: 0.86;
+}
+
+.landing-feature button {
+  justify-self: end;
+}
+
+.landing-feature-blitz h2 {
+  color: #f5f1e7;
+}
+
+.landing-feature-desmos h2 {
+  color: #9be4ff;
+}
+
+.landing-feature-ti h2 {
+  color: #f4ca52;
+}
+
+.landing-feature-ap h2 {
+  color: #ffffff;
+}
+
+.landing-feature-study h2 {
+  color: #3bd48a;
+}
+
+@keyframes landingFloat {
+  0%,
+  100% {
+    transform: translate3d(var(--shift, 0), 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--shift, 0), -12px, 0);
+  }
+}
+
+@keyframes landingReveal {
+  from {
+    opacity: 0.24;
+    transform: translateY(34px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .landing-panel {
+    animation: landingReveal both;
+    animation-timeline: view();
+    animation-range: entry 8% cover 38%;
+  }
+}
+
 .home-page {
   justify-items: center;
   align-content: center;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   gap: 32px;
 }
 
@@ -630,6 +1195,84 @@ body.light-mode .desmos-guide-row h3 {
   line-height: 0.98;
 }
 
+.blitz-launch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: min(100%, 760px);
+}
+
+.blitz-start-button,
+.blitz-mode-settings,
+.selected-mode-label {
+  min-height: 64px;
+  border-radius: 8px;
+}
+
+.blitz-start-button {
+  border: 1px solid rgba(239, 185, 56, 0.78);
+  padding: 0 42px;
+  color: #191b18;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 54%),
+    linear-gradient(135deg, #efb938, #28b27a);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  cursor: pointer;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.42rem);
+  line-height: 1;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.blitz-start-button:hover,
+.blitz-start-button:focus-visible {
+  outline: 0;
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+}
+
+.blitz-mode-settings {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  border: 1px solid rgba(245, 241, 231, 0.26);
+  color: var(--chalk);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent),
+    rgba(19, 28, 24, 0.82);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.blitz-mode-settings .settings-gear {
+  width: 31px;
+  height: 31px;
+}
+
+.blitz-mode-settings:hover,
+.blitz-mode-settings:focus-visible,
+.blitz-mode-settings.active {
+  outline: 0;
+  border-color: rgba(239, 185, 56, 0.82);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), transparent),
+    rgba(31, 46, 39, 0.92);
+  transform: translateY(-2px);
+}
+
+.selected-mode-label {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(245, 241, 231, 0.2);
+  padding: 0 20px;
+  color: rgba(245, 241, 231, 0.9);
+  background: rgba(16, 24, 21, 0.58);
+  font-weight: 900;
+}
+
 #frq-answer {
   min-width: 0;
   width: 100%;
@@ -650,8 +1293,8 @@ body.light-mode .desmos-guide-row h3 {
 
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
   align-self: start;
   width: 100%;
 }
@@ -660,8 +1303,8 @@ body.light-mode .desmos-guide-row h3 {
   position: relative;
   display: grid;
   align-content: end;
-  min-height: 260px;
-  padding: 22px;
+  min-height: 188px;
+  padding: 18px;
   overflow: hidden;
   border: 1px solid rgba(255, 250, 240, 0.52);
   border-radius: 8px;
@@ -677,31 +1320,41 @@ body.light-mode .desmos-guide-row h3 {
 
 .mode-card::before {
   position: absolute;
-  top: 18px;
-  right: 18px;
-  color: rgba(25, 27, 24, 0.12);
-  content: attr(data-mode);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 3.7rem;
+  top: 16px;
+  right: 16px;
+  color: rgba(25, 27, 24, 0.22);
+  content: attr(data-symbol);
+  font-family: "MathJax TeX Main", "Computer Modern Math Italic", Georgia, "Times New Roman", serif;
+  font-size: clamp(2.15rem, 3.35vw, 3.35rem);
   font-weight: 900;
   line-height: 1;
-  text-transform: uppercase;
+  text-transform: none;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
-.mode-card[data-mode="derivative"]::before {
-  content: "d/dx";
+.mode-card[aria-pressed="true"]::before {
+  color: rgba(245, 241, 231, 0.22);
 }
 
-.mode-card[data-mode="integral"]::before {
-  content: "\222B";
-}
-
-.mode-card[data-mode="series"]::before {
-  content: "\03A3";
-}
-
-.mode-card[data-mode="all"]::before {
-  content: "BC";
+.mode-card[aria-pressed="true"]::after {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  aspect-ratio: 1;
+  border: 2px solid rgba(245, 241, 231, 0.92);
+  border-radius: 50%;
+  color: #f5f1e7;
+  background: rgba(16, 17, 15, 0.3);
+  content: "\2713";
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1;
 }
 
 .mode-card:hover,
@@ -712,12 +1365,30 @@ body.light-mode .desmos-guide-row h3 {
   transform: translateY(-5px);
 }
 
+.mode-card.active,
+.mode-card[aria-pressed="true"] {
+  border-color: rgba(49, 183, 214, 0.96);
+  color: #f5f1e7;
+  background:
+    linear-gradient(145deg, rgba(35, 178, 109, 0.96), rgba(49, 183, 214, 0.88)),
+    #1f8b62;
+  box-shadow:
+    inset 0 0 0 2px rgba(245, 241, 231, 0.36),
+    0 0 0 2px rgba(49, 183, 214, 0.28),
+    0 22px 48px rgba(0, 0, 0, 0.38),
+    var(--shadow);
+}
+
+.mode-card[aria-pressed="true"] span {
+  color: rgba(245, 241, 231, 0.86);
+}
+
 .mode-card strong {
   position: relative;
   z-index: 1;
   display: block;
   font-family: "Supercell Magic", Inter, sans-serif;
-  font-size: clamp(1.08rem, 1.8vw, 1.55rem);
+  font-size: clamp(0.95rem, 1.35vw, 1.28rem);
 }
 
 .mode-card span {
@@ -726,7 +1397,7 @@ body.light-mode .desmos-guide-row h3 {
   display: block;
   margin-top: 12px;
   color: var(--muted);
-  font-size: 0.96rem;
+  font-size: 0.86rem;
   font-weight: 750;
   line-height: 1.42;
 }
@@ -759,9 +1430,13 @@ body.light-mode .desmos-guide-row h3 {
 .desmos-page,
 .study-page,
 .ap-page {
+  width: 100vw;
   max-height: calc(100vh - 112px);
   overflow-y: auto;
-  padding-right: 8px;
+  margin-left: 0;
+  margin-right: 0;
+  padding-right: max(18px, calc((100vw - 1180px) / 2));
+  padding-left: max(18px, calc((100vw - 1180px) / 2));
   padding-bottom: 52px;
   color: var(--chalk);
   scrollbar-color: rgba(239, 185, 56, 0.7) rgba(255, 255, 255, 0.08);
@@ -771,7 +1446,12 @@ body.light-mode .desmos-guide-row h3 {
   grid-template-columns: minmax(0, 920px);
   justify-content: center;
   justify-items: stretch;
-  padding-left: 252px;
+  height: calc(100vh - 112px);
+  max-height: calc(100vh - 112px);
+  gap: clamp(10px, 1.6vw, 20px);
+  overflow: hidden;
+  padding-left: max(252px, calc((100vw - 1180px) / 2 + 252px));
+  padding-bottom: 18px;
 }
 
 .desmos-side-tabs {
@@ -823,7 +1503,8 @@ body.light-mode .desmos-guide-row h3 {
 
 .desmos-settings-panel {
   align-content: center;
-  min-height: min(620px, calc(100vh - 190px));
+  min-height: 0;
+  height: min(460px, calc(100vh - 170px));
 }
 
 .desmos-settings-list {
@@ -837,68 +1518,68 @@ body.light-mode .desmos-guide-row h3 {
   border-radius: 10px;
 }
 
-.desmos-difficulty-setting {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-  padding: 18px;
-  border: 1px solid rgba(245, 241, 231, 0.18);
-  border-radius: 10px;
-  background: rgba(245, 241, 231, 0.075);
+body.desmos-answer-box-hidden .prompt-mathquill {
+  display: none;
 }
 
-.desmos-difficulty-setting > span {
-  color: rgba(245, 241, 231, 0.82);
-  font-family: "Supercell Magic", Inter, sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.15;
-}
-
-.desmos-difficulty-options {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.desmos-difficulty-options button {
-  min-height: 48px;
-  border: 1px solid rgba(245, 241, 231, 0.2);
-  border-radius: 8px;
-  color: rgba(245, 241, 231, 0.72);
-  background: rgba(16, 17, 15, 0.44);
-  cursor: pointer;
-  font-family: "Supercell Magic", Inter, sans-serif;
-  font-size: 0.86rem;
-  text-transform: lowercase;
-}
-
-.desmos-difficulty-options button:hover,
-.desmos-difficulty-options button:focus-visible,
-.desmos-difficulty-options button.active {
-  border-color: rgba(239, 185, 56, 0.76);
-  outline: 0;
-  color: #10110f;
-  background: var(--gold);
-}
-
-.desmos-calculator.hide-answer-box .dcg-exppanel-outer,
-.desmos-calculator.hide-answer-box .dcg-exppanel,
-.desmos-calculator.hide-answer-box .dcg-expressionlist,
-.desmos-calculator.hide-answer-box .dcg-expressions,
-.desmos-calculator.hide-answer-box .dcg-add-expression,
-.desmos-calculator.hide-answer-box .dcg-expression-top-bar {
-  display: none !important;
-}
-
-.desmos-calculator.hide-answer-box .dcg-grapher,
-.desmos-calculator.hide-answer-box .dcg-graph-outer,
-.desmos-calculator.hide-answer-box .dcg-graphpaper {
-  left: 0 !important;
-  width: 100% !important;
+body.desmos-answer-box-hidden .speedrun-prompt-set {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .study-page {
-  grid-template-columns: minmax(250px, 0.48fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1040px);
+  justify-content: center;
+  justify-items: stretch;
+  padding-left: max(252px, calc((100vw - 1180px) / 2 + 252px));
+}
+
+.study-side-tabs {
+  position: fixed;
+  top: 132px;
+  left: max(20px, calc((100vw - 1480px) / 2));
+  z-index: 6;
+  display: grid;
+  gap: 14px;
+  width: 232px;
+}
+
+.study-side-tab {
+  min-height: 72px;
+  border: 0;
+  border-radius: 10px;
+  color: rgba(245, 241, 231, 0.58);
+  background: rgba(245, 241, 231, 0.08);
+  cursor: pointer;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  padding: 0 22px;
+  text-align: left;
+  text-transform: lowercase;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+  transition: color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.study-side-tab:hover,
+.study-side-tab:focus-visible,
+.study-side-tab.active {
+  outline: 0;
+  color: #10110f;
+  background: var(--gold);
+  transform: translateX(3px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.32);
+}
+
+.study-mode-panel {
+  display: grid;
+  grid-column: 1;
+  width: min(100%, 1040px);
+  gap: clamp(22px, 3.2vw, 42px);
+}
+
+.study-mode-panel[hidden] {
+  display: none !important;
 }
 
 .study-aim-board {
@@ -921,6 +1602,11 @@ body.light-mode .desmos-guide-row h3 {
   grid-template-rows: 1fr auto;
   gap: 12px;
   min-width: 0;
+}
+
+.study-aim-column + .study-aim-column {
+  border-left: 1px solid rgba(245, 241, 231, 0.16);
+  padding-left: clamp(10px, 2vw, 22px);
 }
 
 .study-logo-triangle {
@@ -1017,8 +1703,6 @@ body.light-mode .desmos-guide-row h3 {
 .study-aim-text {
   align-content: center;
   justify-items: center;
-  border-left: 1px solid rgba(245, 241, 231, 0.16);
-  padding-left: clamp(10px, 2vw, 22px);
 }
 
 .study-future-grid {
@@ -1087,8 +1771,22 @@ body.light-mode .desmos-guide-row h3 {
 }
 
 .calc-page {
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
+  grid-template-columns: minmax(0, 760px);
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  width: min(1240px, calc(100vw - 36px));
+  min-height: calc(100vh - 112px);
+  gap: 18px;
+  padding-left: 58px;
+}
+
+.calc-page.ti84-guide-open {
+  grid-template-columns: minmax(260px, 340px) minmax(0, 760px);
+  align-items: center;
+  justify-items: stretch;
+  width: min(1260px, calc(100vw - 36px));
 }
 
 .page-label {
@@ -1201,7 +1899,8 @@ body.light-mode .desmos-guide-row h3 {
 
 .speedrun-main {
   align-content: center;
-  min-height: min(620px, calc(100vh - 190px));
+  min-height: 0;
+  height: min(100%, calc(100vh - 132px));
 }
 
 .speedrun-card {
@@ -1230,6 +1929,8 @@ body.light-mode .desmos-guide-row h3 {
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .desmos-hover-tooltip {
@@ -1263,7 +1964,7 @@ body.light-mode .desmos-guide-row h3 {
   max-width: 100%;
   overflow: visible;
   color: #171817;
-  font-size: clamp(1.3rem, 2.72vw, 2.9rem);
+  font-size: 1.85rem;
   font-synthesis: none;
   font-weight: 400;
   line-height: 1;
@@ -1274,6 +1975,20 @@ body.light-mode .desmos-guide-row h3 {
   -webkit-font-smoothing: antialiased;
   white-space: nowrap;
   word-break: normal;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.desmos-prompt-font *,
+.desmos-prompt-line *,
+.desmos-prompt-inline-math * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.desmos-prompt-font:empty::before {
+  content: attr(data-fallback);
+  color: #171817;
 }
 
 .desmos-prompt-font .mq-root-block,
@@ -1284,6 +1999,20 @@ body.light-mode .desmos-guide-row h3 {
   text-shadow: none;
   text-transform: none;
   white-space: nowrap;
+}
+
+.desmos-prompt-font.desmos-prompt-raw-latex {
+  font-size: 1.45rem;
+}
+
+.prompt-mathjax-tex .desmos-prompt-font.desmos-prompt-raw-latex {
+  font-family: "MathJax TeX Math Italic", "MathJax TeX Main", "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+  font-style: italic;
+}
+
+.prompt-mathquill .desmos-prompt-font.desmos-prompt-raw-latex {
+  font-family: Symbola, "Times New Roman", serif;
+  font-style: italic;
 }
 
 .desmos-prompt-font .mq-root-block {
@@ -1302,7 +2031,7 @@ body.light-mode .desmos-guide-row h3 {
   display: grid;
   gap: 0.28em;
   align-content: center;
-  font-size: clamp(1.2rem, 2.35vw, 2.35rem);
+  font-size: 1.55rem;
   line-height: 1.08;
 }
 
@@ -1494,7 +2223,7 @@ body.light-mode .desmos-guide-row h3 {
 
 .desmos-calculator {
   width: 100%;
-  height: clamp(320px, 46vh, 520px);
+  height: clamp(240px, calc(100vh - 360px), 460px);
   overflow: hidden;
   border: 1px solid rgba(245, 241, 231, 0.24);
   border-radius: 8px;
@@ -1509,18 +2238,34 @@ body.light-mode .desmos-guide-row h3 {
 .desmos-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
+.desmos-score {
+  min-height: 48px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(245, 241, 231, 0.24);
+  border-radius: 8px;
+  color: var(--gold);
+  background: rgba(245, 241, 231, 0.08);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .math-typing-panel {
-  --bg-color: #323437;
-  --main-color: #e2b714;
-  --caret-color: #e2b714;
-  --sub-color: #646669;
-  --sub-alt-color: #2c2e31;
-  --text-color: #d1d0c5;
-  --error-color: #ca4754;
-  --error-extra-color: #7e2a33;
+  --bg-color: var(--ink);
+  --main-color: var(--gold);
+  --caret-color: var(--gold);
+  --sub-color: color-mix(in srgb, var(--chalk) 66%, transparent);
+  --sub-alt-color: color-mix(in srgb, var(--chalk) 13%, transparent);
+  --text-color: var(--chalk);
+  --error-color: #ff6d64;
+  --error-extra-color: #b93f3b;
   --roundness: 0.5rem;
   --mt-bg-color: var(--bg-color);
   --mt-main-color: var(--main-color);
@@ -1530,14 +2275,15 @@ body.light-mode .desmos-guide-row h3 {
   --mt-extra-error-color: var(--error-extra-color);
   display: grid;
   grid-column: 1 / -1;
-  width: min(100%, 920px);
-  min-height: min(640px, calc(100vh - 190px));
-  align-content: center;
-  padding: clamp(42px, 7vw, 86px) clamp(14px, 2.6vw, 28px);
+  width: min(100%, 1160px);
+  min-height: 0;
+  height: min(100%, calc(100vh - 132px));
+  align-content: start;
+  padding: clamp(12px, 2.2vh, 24px) clamp(10px, 2vw, 28px) clamp(8px, 1.6vh, 18px);
   border: 0;
   border-radius: 0;
   color: var(--text-color);
-  background: var(--bg-color);
+  background: transparent;
   box-shadow: none;
   cursor: text;
   animation: mtPanelIn 180ms ease both;
@@ -1546,25 +2292,33 @@ body.light-mode .desmos-guide-row h3 {
 .math-typing-test {
   position: relative;
   display: grid;
-  gap: 1rem;
+  gap: clamp(0.55rem, 1.3vh, 0.9rem);
   width: 100%;
   margin: 0 auto;
 }
 
 .math-typing-stats {
   display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: 0.5em;
-  width: 0;
-  height: 0;
-  margin-top: -1.25em;
-  margin-left: 0.25em;
+  width: fit-content;
+  min-height: 1.45em;
+  margin: 0 0 0.1rem 0.25em;
   color: var(--main-color);
   font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 1em;
-  line-height: 1em;
+  line-height: 1.35;
+  overflow: visible;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
+}
+
+.math-typing-stats span {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: max-content;
 }
 
 .math-typing-stats b {
@@ -1575,15 +2329,11 @@ body.light-mode .desmos-guide-row h3 {
 
 .math-typing-words-wrapper {
   position: relative;
-  overflow: visible clip;
+  overflow: visible;
   width: 100%;
-  mask-image: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgb(0, 0, 0) 4%,
-    rgb(0, 0, 0) 96%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  height: auto;
+  min-height: 5.4em;
+  mask-image: none;
 }
 
 .math-typing-words {
@@ -1593,17 +2343,17 @@ body.light-mode .desmos-guide-row h3 {
   align-content: flex-start;
   width: 100%;
   height: fit-content;
-  min-height: 3.6em;
-  padding-bottom: 0.5em;
-  overflow: hidden;
+  min-height: 0;
+  padding: 0.05em 0 0.24em;
+  overflow: visible;
   border: 0;
   color: var(--sub-color);
   background: transparent;
   font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: clamp(1.65rem, 3.4vw, 2.55rem);
+  font-size: clamp(1.18rem, 2.1vw, 2.05rem);
   font-weight: 400;
-  line-height: 1em;
-  contain: layout paint;
+  line-height: 1.16;
+  contain: layout style;
   user-select: none;
   transition: transform 250ms ease;
   --correct-letter-color: var(--text-color);
@@ -1615,11 +2365,11 @@ body.light-mode .desmos-guide-row h3 {
 .math-type-word {
   position: relative;
   display: inline-block;
-  margin: 0.25em 0.3em;
+  margin: 0.18em 0.26em;
   border-bottom: 2px solid transparent;
   font-variant: no-common-ligatures;
   font-size: 1em;
-  line-height: 1em;
+  line-height: 1.18;
   vertical-align: top;
   white-space: nowrap;
   transition:
@@ -1640,6 +2390,33 @@ body.light-mode .desmos-guide-row h3 {
 
 .math-type-word.active {
   transform: translateY(-0.02em);
+}
+
+.math-type-word.enter-token {
+  display: inline-grid;
+  place-items: center;
+  min-width: 4.1rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.58rem 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--sub-color) 48%, transparent);
+  border-radius: 0.28rem;
+  font-size: 1rem;
+  line-height: 1;
+  text-align: center;
+  vertical-align: 0.08em;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+
+.math-type-word.enter-token letter {
+  display: block;
+  font-size: 0;
+  line-height: 1;
+}
+
+.math-type-word.enter-token letter::after {
+  content: "enter";
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .math-type-word.typed.error,
@@ -1749,8 +2526,129 @@ body.light-mode .desmos-guide-row h3 {
   box-shadow: none;
 }
 
+.math-typing-keyboard {
+  --mt-key-width: clamp(1.38rem, 5.1vw, 2.58rem);
+  --mt-wide-key-width: clamp(3.25rem, 10.7vw, 5.6rem);
+  --mt-space-key-width: min(20rem, 42vw);
+  display: grid;
+  gap: clamp(0.22rem, 0.65vh, 0.36rem);
+  justify-items: center;
+  width: min(100%, 980px);
+  margin: 0.1rem auto 0;
+  color: var(--sub-color);
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  pointer-events: none;
+  user-select: none;
+}
+
+.math-keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.1rem, 0.55vw, 0.3rem);
+  width: 100%;
+}
+
+.math-key {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 var(--mt-key-width);
+  min-width: var(--mt-key-width);
+  width: var(--mt-key-width);
+  height: clamp(1.92rem, 4.5vw, 2.18rem);
+  padding: 0 0.42rem;
+  border: 1px solid color-mix(in srgb, var(--sub-color) 38%, transparent);
+  border-radius: 0.36rem;
+  color: var(--sub-color);
+  background: var(--sub-alt-color);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: lowercase;
+  overflow: hidden;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+  transition:
+    color 90ms ease,
+    background-color 90ms ease,
+    border-color 90ms ease,
+    box-shadow 90ms ease,
+    transform 90ms cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.math-key.wide {
+  flex-basis: var(--mt-wide-key-width);
+  min-width: var(--mt-wide-key-width);
+  width: var(--mt-wide-key-width);
+}
+
+.math-key[data-key="enter"] {
+  flex-basis: var(--mt-wide-key-width);
+  min-width: var(--mt-wide-key-width);
+  width: var(--mt-wide-key-width);
+}
+
+.math-key.extra-wide {
+  flex-basis: var(--mt-space-key-width);
+  min-width: var(--mt-space-key-width);
+  width: var(--mt-space-key-width);
+}
+
+.math-key-label {
+  display: block;
+  overflow: visible;
+  max-width: 100%;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.math-key-hint {
+  position: absolute;
+  top: 0.22rem;
+  right: 0.32rem;
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 90ms ease,
+    transform 90ms cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.math-key.active {
+  color: var(--bg-color);
+  border-color: var(--main-color);
+  background: var(--main-color);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--main-color) 42%, transparent),
+    0 0 18px color-mix(in srgb, var(--main-color) 32%, transparent),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.16);
+  transform: translateY(-2px);
+}
+
+.math-key.shifted-active .math-key-hint {
+  opacity: 0.86;
+  transform: translateY(0);
+}
+
+.math-typing-key-hint {
+  justify-self: center;
+  margin-top: 0;
+  color: var(--main-color);
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(0.78rem, 1.1vw, 0.98rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: lowercase;
+  user-select: none;
+}
+
 .math-typing-test.result-visible .math-typing-stats,
-.math-typing-test.result-visible .math-typing-words-wrapper {
+.math-typing-test.result-visible .math-typing-words-wrapper,
+.math-typing-test.result-visible .math-typing-keyboard,
+.math-typing-test.result-visible .math-typing-key-hint {
   display: none;
 }
 
@@ -1784,6 +2682,7 @@ body.light-mode .desmos-guide-row h3 {
   display: grid;
   gap: 0.18rem;
   min-width: 0;
+  overflow: visible;
 }
 
 .math-result-stat span {
@@ -1794,12 +2693,14 @@ body.light-mode .desmos-guide-row h3 {
 }
 
 .math-result-stat strong {
+  display: block;
+  max-width: 100%;
   color: var(--main-color);
   font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: clamp(2rem, 4.4vw, 4.15rem);
   font-weight: 400;
   letter-spacing: 0;
-  line-height: 0.96;
+  line-height: 1.04;
   white-space: nowrap;
 }
 
@@ -1841,8 +2742,8 @@ body.light-mode .desmos-guide-row h3 {
   justify-self: center;
   min-width: 0;
   min-height: 0;
-  margin: 1rem auto 0;
-  padding: 1em 2em;
+  margin: 0.12rem auto 0;
+  padding: 0.72em 1.55em;
   border: 0;
   border-radius: 0;
   color: var(--sub-color);
@@ -2173,6 +3074,8 @@ body.light-mode .desmos-guide-row h3 {
 .ti84-panel {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
   width: min(100%, 760px);
   height: min(84vh, 820px);
   min-height: 680px;
@@ -2182,6 +3085,275 @@ body.light-mode .desmos-guide-row h3 {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.ti84-guide-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid rgba(245, 241, 231, 0.34);
+  border-radius: 8px;
+  color: var(--chalk);
+  background: rgba(16, 17, 15, 0.74);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+
+.ti84-guide-toggle:hover,
+.ti84-guide-toggle:focus-visible,
+.ti84-guide-toggle[aria-expanded="true"] {
+  border-color: rgba(239, 185, 56, 0.88);
+  outline: 0;
+  color: var(--gold);
+  background: rgba(25, 31, 28, 0.92);
+}
+
+.ti84-guide-toggle svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.22));
+}
+
+.ti84-guide-panel {
+  z-index: 2;
+  display: grid;
+  gap: 10px;
+  align-self: center;
+  width: 100%;
+  max-height: min(76vh, 720px);
+  padding: 14px;
+  overflow-y: auto;
+  border: 1px solid rgba(245, 241, 231, 0.18);
+  border-radius: 8px;
+  color: var(--chalk);
+  background: rgba(16, 17, 15, 0.68);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+  scrollbar-color: rgba(239, 185, 56, 0.7) rgba(255, 255, 255, 0.08);
+}
+
+.ti84-guide-head {
+  display: grid;
+  gap: 3px;
+  padding: 2px 2px 4px;
+}
+
+.ti84-guide-head h2 {
+  margin: 0;
+  color: var(--chalk);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.ti84-guide-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(245, 241, 231, 0.14);
+  border-radius: 8px;
+  background: rgba(245, 241, 231, 0.075);
+}
+
+.ti84-guide-card h3 {
+  margin: 0;
+  color: var(--gold);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.ti84-key-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 8px;
+  align-items: center;
+}
+
+.ti84-key {
+  --ti84-faceplate-url: url("TI84CE_touch.svg");
+  --ti84-key-x: -9px;
+  --ti84-key-y: -207px;
+  --ti84-key-w: 48px;
+  --ti84-key-h: 38px;
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: var(--ti84-key-w);
+  height: var(--ti84-key-h);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.ti84-key::before {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background-image: var(--ti84-faceplate-url);
+  background-position: var(--ti84-key-x) var(--ti84-key-y);
+  background-repeat: no-repeat;
+  background-size: 258px 604px;
+}
+
+.ti84-key[data-ti84-key="y-equals"] {
+  --ti84-key-x: -9px;
+  --ti84-key-y: -207px;
+}
+
+.ti84-key[data-ti84-key="graph"] {
+  --ti84-key-x: -201px;
+  --ti84-key-y: -207px;
+}
+
+.ti84-key[data-ti84-key="trace"] {
+  --ti84-key-x: -153px;
+  --ti84-key-y: -207px;
+}
+
+.ti84-key[data-ti84-key="second"] {
+  --ti84-key-x: -9px;
+  --ti84-key-y: -253px;
+}
+
+.ti84-key[data-ti84-key="alpha"] {
+  --ti84-key-x: -9px;
+  --ti84-key-y: -291px;
+}
+
+.ti84-key[data-ti84-key="xvar"] {
+  --ti84-key-x: -57px;
+  --ti84-key-y: -291px;
+}
+
+.ti84-key[data-ti84-key="math"] {
+  --ti84-key-x: -9px;
+  --ti84-key-y: -329px;
+}
+
+.ti84-key[data-ti84-key="vars"] {
+  --ti84-key-x: -153px;
+  --ti84-key-y: -329px;
+}
+
+.ti84-key[data-ti84-key="left-paren"] {
+  --ti84-key-x: -105px;
+  --ti84-key-y: -405px;
+}
+
+.ti84-key[data-ti84-key="right-paren"] {
+  --ti84-key-x: -153px;
+  --ti84-key-y: -405px;
+}
+
+.ti84-key[data-ti84-key="eight"] {
+  --ti84-key-x: -105px;
+  --ti84-key-y: -443px;
+}
+
+.ti84-key[data-ti84-key="nine"] {
+  --ti84-key-x: -153px;
+  --ti84-key-y: -443px;
+}
+
+.ti84-key[data-ti84-key="four"] {
+  --ti84-key-x: -57px;
+  --ti84-key-y: -481px;
+}
+
+.ti84-key[data-ti84-key="five"] {
+  --ti84-key-x: -105px;
+  --ti84-key-y: -481px;
+}
+
+.ti84-key[data-ti84-key="two"] {
+  --ti84-key-x: -105px;
+  --ti84-key-y: -519px;
+}
+
+.ti84-key[data-ti84-key="three"] {
+  --ti84-key-x: -153px;
+  --ti84-key-y: -519px;
+}
+
+.ti84-key[data-ti84-key="enter"] {
+  --ti84-key-x: -201px;
+  --ti84-key-y: -557px;
+}
+
+.ti84-key[data-ti84-key="up"],
+.ti84-key[data-ti84-key="down"] {
+  --ti84-key-w: 58px;
+  --ti84-key-h: 38px;
+}
+
+.ti84-key[data-ti84-key="left"],
+.ti84-key[data-ti84-key="right"] {
+  --ti84-key-w: 38px;
+  --ti84-key-h: 62px;
+}
+
+.ti84-key[data-ti84-key="left"] {
+  --ti84-key-x: -158px;
+  --ti84-key-y: -256px;
+}
+
+.ti84-key[data-ti84-key="right"] {
+  --ti84-key-x: -206px;
+  --ti84-key-y: -256px;
+}
+
+.ti84-key[data-ti84-key="up"] {
+  --ti84-key-x: -172px;
+  --ti84-key-y: -244px;
+}
+
+.ti84-key[data-ti84-key="down"] {
+  --ti84-key-x: -172px;
+  --ti84-key-y: -293px;
+}
+
+.ti84-menu-choice {
+  display: inline-grid;
+  place-items: center;
+  min-width: 68px;
+  min-height: 31px;
+  padding: 5px 8px;
+  border: 1px solid #6b7470;
+  border-radius: 4px;
+  color: #0b1614;
+  background: linear-gradient(180deg, #dfe7dd 0%, #b6c7b6 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.22),
+    0 2px 0 rgba(0, 0, 0, 0.52);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .ti84-panel:fullscreen {
@@ -2246,14 +3418,15 @@ body.light-mode .desmos-guide-row h3 {
   width: 100%;
   height: 100%;
   border: 0;
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .shell {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto;
   gap: 18px;
   width: min(1180px, calc(100vw - 36px));
   height: calc(100vh - 112px);
@@ -2270,7 +3443,7 @@ body.light-mode .desmos-guide-row h3 {
 }
 
 .hud {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -2782,6 +3955,68 @@ body.desmos-speedrun-view .time-track {
     margin: 82px auto 28px;
   }
 
+  .landing-page {
+    width: min(100vw - 24px, 680px);
+    height: auto;
+    min-height: calc(100vh - 104px);
+    margin: 82px auto 28px;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .landing-panel {
+    min-height: auto;
+    padding: 42px 0;
+  }
+
+  .landing-hero,
+  .landing-feature {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero {
+    min-height: calc(100vh - 142px);
+  }
+
+  .landing-orbit-menu {
+    --orbit-radius: min(38vw, 226px);
+    min-height: 470px;
+  }
+
+  .landing-orbit-item {
+    width: min(68vw, 338px);
+    min-height: 132px;
+  }
+
+  .landing-orbit-card {
+    min-height: 132px;
+    padding: 18px 24px;
+  }
+
+  .landing-orbit-desmos {
+    min-height: 150px;
+    padding: 0;
+  }
+
+  .landing-orbit-desmos img {
+    height: 150px;
+  }
+
+  .landing-preview {
+    min-height: 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .landing-preview-line {
+    --shift: 0 !important;
+    width: 100%;
+  }
+
+  .landing-feature button {
+    justify-self: start;
+  }
+
   .developer-page,
   .desmos-page,
   .study-page,
@@ -2790,6 +4025,13 @@ body.desmos-speedrun-view .time-track {
     overflow: visible;
     padding-left: 0;
     padding-right: 0;
+  }
+
+  .desmos-page {
+    height: calc(100vh - 104px);
+    max-height: calc(100vh - 104px);
+    overflow: hidden;
+    padding-bottom: 12px;
   }
 
   .mode-grid {
@@ -2808,35 +4050,68 @@ body.desmos-speedrun-view .time-track {
     grid-template-columns: 1fr;
   }
 
+  .calc-page,
+  .calc-page.ti84-guide-open {
+    grid-template-columns: 1fr;
+    width: min(100vw - 24px, 680px);
+    align-content: start;
+    padding-left: 0;
+    padding-top: 56px;
+  }
+
+  .ti84-guide-toggle {
+    top: 0;
+    left: 0;
+  }
+
+  .ti84-guide-panel {
+    max-height: 34vh;
+  }
+
   .study-aim-board {
     grid-template-columns: 1fr;
   }
 
   .study-aim-text {
+    border-top: 1px solid rgba(245, 241, 231, 0.16);
+    padding-top: 18px;
+  }
+
+  .study-aim-column + .study-aim-column {
     border-left: 0;
     border-top: 1px solid rgba(245, 241, 231, 0.16);
     padding-top: 18px;
     padding-left: 0;
   }
 
-  .desmos-side-tabs {
+  .desmos-side-tabs,
+  .study-side-tabs {
     position: static;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-column: 1;
     width: 100%;
   }
 
-  .desmos-side-tab {
+  .desmos-side-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .desmos-side-tab,
+  .study-side-tab {
     text-align: center;
   }
 
   .desmos-side-tab:hover,
   .desmos-side-tab:focus-visible,
-  .desmos-side-tab.active {
+  .desmos-side-tab.active,
+  .study-side-tab:hover,
+  .study-side-tab:focus-visible,
+  .study-side-tab.active {
     transform: translateY(-1px);
   }
 
-  .desmos-mode-panel {
+  .desmos-mode-panel,
+  .study-mode-panel {
     grid-column: 1;
     width: 100%;
   }
@@ -2850,12 +4125,21 @@ body.desmos-speedrun-view .time-track {
     grid-template-columns: 1fr;
   }
 
+  .prompt-font-card {
+    min-height: 70px;
+    padding: 10px 12px;
+  }
+
   .math-result-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .math-result-stat.result-wpm {
     grid-column: 1 / -1;
+  }
+
+  .math-result-stat.result-wpm strong {
+    font-size: clamp(2.6rem, 13vw, 5.4rem);
   }
 
   .desmos-header,
@@ -2948,6 +4232,31 @@ body.desmos-speedrun-view .time-track {
     grid-template-columns: 1fr;
   }
 
+  .landing-orbit-menu {
+    --orbit-radius: min(31vw, 136px);
+    min-height: 360px;
+  }
+
+  .landing-orbit-item {
+    width: min(70vw, 260px);
+    min-height: 104px;
+  }
+
+  .landing-orbit-card {
+    min-height: 104px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .landing-orbit-desmos {
+    min-height: 118px;
+    padding: 0;
+  }
+
+  .landing-orbit-desmos img {
+    height: 118px;
+  }
+
   .top-nav {
     gap: 6px 12px;
   }
@@ -2989,6 +4298,10 @@ body.desmos-speedrun-view .time-track {
 
   .math-result-stats {
     grid-template-columns: 1fr;
+  }
+
+  .math-result-stat.result-wpm strong {
+    font-size: clamp(2.4rem, 16vw, 4.4rem);
   }
 
   .math-result-words {

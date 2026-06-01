@@ -31,8 +31,9 @@
     body,
     #calculatorDiv,
     #calculatorDiv > div,
-    #calculatorDiv canvas,
-    #calculatorDiv svg,
+    #calculatorDiv > div > div,
+    #calculatorViewport > div,
+    body > div,
     #main_div {
       background: transparent !important;
       background-color: transparent !important;
@@ -62,13 +63,25 @@
       background: transparent;
     }
 
+    #calculatorViewport .transparent-wrapper {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+    }
+
+    #calculatorViewport .white-media-layer {
+      background: transparent !important;
+      background-color: transparent !important;
+      mix-blend-mode: multiply;
+    }
+
     #main_div {
       display: none;
     }
   </style>
   <script src="https://mn.testnav.com/client/texasinstruments/js/ELG-min.js"></script>
   <script id="h84statej" type="application/json" data-url="https://mn.testnav.com/client/texasinstruments/bin/No_AppsCE.h84statej"></script>
-  <script id="ti84faceplate" type="application/json" data-url="https://mn.testnav.com/client/texasinstruments/images/TI84CE_touch.svg"></script>
+  <script id="ti84faceplate" type="application/json" data-url="TI84CE_touch.svg"></script>
 </head>
 <body>
   <div id="calculatorViewport">
@@ -90,6 +103,10 @@
     const fullscreenWidthFit = 0.86;
     const fullscreenHeightFit = 0.9;
     const fullscreenMaxScale = 1.92;
+    const normalCenterCorrectionX = 0.065;
+    const normalCenterCorrectionY = 0.062;
+    const fullscreenCenterCorrectionX = 0.025;
+    const fullscreenCenterCorrectionY = 0.032;
     let fullscreenMode = false;
 
     function measureCalculator() {
@@ -112,16 +129,17 @@
 
       if (!rects.length) rects.push(divRect);
 
+      const initialBounds = rects[0] || divRect;
       const bounds = rects.reduce((box, rect) => ({
         left: Math.min(box.left, rect.left),
         top: Math.min(box.top, rect.top),
         right: Math.max(box.right, rect.right),
         bottom: Math.max(box.bottom, rect.bottom)
       }), {
-        left: divRect.left,
-        top: divRect.top,
-        right: divRect.right,
-        bottom: divRect.bottom
+        left: initialBounds.left,
+        top: initialBounds.top,
+        right: initialBounds.right,
+        bottom: initialBounds.bottom
       });
 
       const width = Math.max(bounds.right - bounds.left, 360);
@@ -144,18 +162,58 @@
       return Math.min(fitScale, normalMaxScale);
     }
 
+    function isWhiteishBackground(value) {
+      const match = String(value || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/i);
+      if (!match) return false;
+      const red = Number(match[1]);
+      const green = Number(match[2]);
+      const blue = Number(match[3]);
+      const alpha = match[4] === undefined ? 1 : Number(match[4]);
+      return alpha > 0.05 && red > 235 && green > 235 && blue > 235;
+    }
+
+    function clearWhiteWrapperBackgrounds() {
+      const viewportRect = viewport.getBoundingClientRect();
+      [document.documentElement, document.body, viewport, calcDiv].forEach((element) => {
+        element.style.setProperty("background", "transparent", "important");
+        element.style.setProperty("background-color", "transparent", "important");
+      });
+
+      [...document.body.querySelectorAll("*")].forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        if (element.matches("canvas, svg, img, object")) {
+          const viewportSized = rect.width > viewportRect.width * 0.82 && rect.height > viewportRect.height * 0.82;
+          if (viewportSized && isWhiteishBackground(style.backgroundColor)) {
+            element.classList.add("white-media-layer");
+            element.style.setProperty("background", "transparent", "important");
+            element.style.setProperty("background-color", "transparent", "important");
+          }
+          return;
+        }
+
+        const largeWrapper = rect.width > viewportRect.width * 0.52 || rect.height > viewportRect.height * 0.52;
+        const calculatorWrapper = element === calcDiv.firstElementChild || element.parentElement === calcDiv || element.parentElement?.parentElement === calcDiv;
+        const outsideCalculatorWrapper = !calcDiv.contains(element) && rect.width > viewportRect.width * 0.35 && rect.height > viewportRect.height * 0.35;
+        if ((largeWrapper || calculatorWrapper || outsideCalculatorWrapper) && (isWhiteishBackground(style.backgroundColor) || style.backgroundImage !== "none")) {
+          element.classList.add("transparent-wrapper");
+          element.style.setProperty("background", "transparent", "important");
+          element.style.setProperty("background-color", "transparent", "important");
+          element.style.setProperty("box-shadow", "none", "important");
+        }
+      });
+    }
+
     function fitCalculator() {
-      document.documentElement.style.setProperty("background", "transparent", "important");
-      document.body.style.setProperty("background", "transparent", "important");
-      document.body.style.setProperty("background-color", "transparent", "important");
-      calcDiv.style.setProperty("background", "transparent", "important");
-      calcDiv.style.setProperty("background-color", "transparent", "important");
+      clearWhiteWrapperBackgrounds();
 
       const viewportRect = viewport.getBoundingClientRect();
       const size = measureCalculator();
       const calculatorScale = getCalculatorScale(viewportRect, size);
-      const left = (viewportRect.width / 2) - ((size.offsetX + (size.width / 2)) * calculatorScale);
-      const top = (viewportRect.height / 2) - ((size.offsetY + (size.height / 2)) * calculatorScale);
+      const centerCorrectionX = viewportRect.width * (fullscreenMode ? fullscreenCenterCorrectionX : normalCenterCorrectionX);
+      const centerCorrectionY = viewportRect.height * (fullscreenMode ? fullscreenCenterCorrectionY : normalCenterCorrectionY);
+      const left = (viewportRect.width / 2) - ((size.offsetX + (size.width / 2)) * calculatorScale) + centerCorrectionX;
+      const top = (viewportRect.height / 2) - ((size.offsetY + (size.height / 2)) * calculatorScale) + centerCorrectionY;
 
       calcDiv.style.left = `${left}px`;
       calcDiv.style.top = `${top}px`;
@@ -189,7 +247,11 @@
       window.setTimeout(fitCalculator, 100);
       window.setTimeout(fitCalculator, 500);
       window.setTimeout(fitCalculator, 1200);
+      window.setTimeout(fitCalculator, 2200);
     }
+
+    const observer = new MutationObserver(() => window.requestAnimationFrame(clearWhiteWrapperBackgrounds));
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true, attributeFilter: ["style", "class"] });
 
     window.addEventListener("resize", fitCalculator);
     window.addEventListener("message", (event) => {

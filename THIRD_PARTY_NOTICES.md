@@ -33,11 +33,15 @@ intellectual property. TI-84 Plus CE is a Texas Instruments trademark. This
 project is not affiliated with, endorsed by, or sponsored by Texas Instruments
 or Pearson Education/TestNav.
 
+`TI84CE_touch.svg` is the TI-84 Plus CE faceplate asset from the same
+TestNav/Texas Instruments source and is used locally for exact button crops in
+the TI84 button guide.
+
 ## Monkeytype-adapted typing panel
 
 The math typing panel in `index.html`, `styles.css`, and `game.js` uses adapted
 typing-test structure, word/letter styling, hidden input behavior, smooth caret
-transition behavior, and result-stat layout patterns from:
+transition behavior, result-stat layout patterns, and keymap display behavior from:
 https://github.com/monkeytypegame/monkeytype
 
 GPL-3.0 License

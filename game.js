@@ -3,14 +3,16 @@
 const elements = {
   canvas: document.getElementById("vfx"),
   formulaLayer: document.getElementById("formula-layer"),
+  landingPage: document.getElementById("landing-page"),
   homePage: document.getElementById("home-page"),
   developerPage: document.getElementById("developer-page"),
   desmosPage: document.getElementById("desmos-page"),
   studyPage: document.getElementById("study-page"),
-  apPage: document.getElementById("ap-page"),
   calcPage: document.getElementById("calc-page"),
   ti84Panel: document.querySelector(".ti84-panel"),
   ti84Fullscreen: document.getElementById("ti84-fullscreen"),
+  ti84GuideToggle: document.getElementById("ti84-guide-toggle"),
+  ti84Guide: document.getElementById("ti84-guide"),
   gamePage: document.getElementById("game-page"),
   navHome: document.getElementById("nav-home"),
   navPlay: document.getElementById("nav-play"),
@@ -19,7 +21,15 @@ const elements = {
   navAP: document.getElementById("nav-ap"),
   navStudy: document.getElementById("nav-study"),
   navDeveloper: document.getElementById("nav-developer"),
+  homeTargetButtons: [...document.querySelectorAll("[data-home-target]")],
+  landingOrbitMenu: document.querySelector(".landing-orbit-menu"),
+  landingOrbitWheel: document.querySelector(".landing-orbit-wheel"),
+  landingOrbitItems: [...document.querySelectorAll(".landing-orbit-item")],
   modeButtons: [...document.querySelectorAll("[data-mode]")],
+  modeStart: document.getElementById("mode-start-btn"),
+  modeSettings: document.getElementById("mode-settings-btn"),
+  modeGrid: document.getElementById("mode-grid"),
+  selectedModeLabel: document.getElementById("selected-mode-label"),
   score: document.getElementById("score"),
   streak: document.getElementById("streak"),
   level: document.getElementById("level"),
@@ -49,18 +59,21 @@ const elements = {
   desmosModePanels: [...document.querySelectorAll("[data-desmos-panel]")],
   desmosCalculator: document.getElementById("desmos-calculator"),
   desmosStart: document.getElementById("desmos-start"),
+  desmosScore: document.getElementById("desmos-score"),
   desmosGuideToggle: document.getElementById("desmos-guide-toggle"),
   desmosGuideClose: document.getElementById("desmos-guide-close"),
   desmosGuide: document.getElementById("desmos-guide"),
   desmosFeedback: document.getElementById("desmos-feedback"),
   desmosHideAnswerToggle: document.getElementById("desmos-hide-answer-toggle"),
   desmosTimebarToggle: document.getElementById("desmos-timebar-toggle"),
-  desmosSpeedrunDifficultyButtons: [...document.querySelectorAll("[data-speedrun-difficulty]")],
-  desmosTypingDifficultyButtons: [...document.querySelectorAll("[data-typing-difficulty]")],
+  studyModeButtons: [...document.querySelectorAll("[data-study-mode]")],
+  studyModePanels: [...document.querySelectorAll("[data-study-panel]")],
   mathTypingPanel: document.querySelector(".math-typing-panel"),
   mathTypingTest: document.getElementById("typingTest"),
   mathTypingWords: document.getElementById("words"),
   mathTypingInput: document.getElementById("wordsInput"),
+  mathTypingKeyboard: document.getElementById("math-typing-keyboard"),
+  mathTypingKeyHint: document.getElementById("math-typing-key-hint"),
   mathTypingRestart: document.getElementById("restartTestButton"),
   mathTypingWpm: document.getElementById("math-typing-wpm"),
   mathTypingAccuracy: document.getElementById("math-typing-accuracy"),
@@ -83,7 +96,8 @@ const elements = {
 
 const state = {
   running: false,
-  mode: "all",
+  mode: "unit1",
+  modes: ["unit1"],
   score: 0,
   streak: 0,
   level: 1,
@@ -94,7 +108,11 @@ const state = {
   locked: false,
   lastFrame: performance.now(),
   formulaTime: 0,
-  formulaPulse: 0
+  formulaPulse: 0,
+  formulaDrain: false,
+  formulaDrainComplete: false,
+  formulaDrainTarget: 0,
+  page: "landing"
 };
 
 const desmosState = {
@@ -142,33 +160,26 @@ const appSettings = {
 
 const desmosSettings = {
   hideAnswerBox: localStorage.getItem("bc-blitz-desmos-hide-answer") === "on",
-  timebar: localStorage.getItem("bc-blitz-desmos-timebar") !== "off",
-  speedrunDifficulty: localStorage.getItem("bc-blitz-desmos-speedrun-difficulty") || "normal",
-  typingDifficulty: localStorage.getItem("bc-blitz-desmos-typing-difficulty") || "normal"
+  timebar: localStorage.getItem("bc-blitz-desmos-timebar") !== "off"
 };
 
-const desmosSpeedrunDifficulty = {
-  easy: { start: 75, max: 90, bonus: 7 },
-  normal: { start: 60, max: 75, bonus: 5 },
-  hard: { start: 45, max: 60, bonus: 4 }
-};
-
-const desmosTypingDifficulty = {
-  easy: { words: 24 },
-  normal: { words: 34 },
-  hard: { words: 52 }
-};
+const desmosSpeedrunTiming = { start: 60, max: 75, bonus: 5 };
+const mathTypingWordCount = 28;
 
 const keys = ["A", "B", "C", "D"];
 const modeLabels = {
-  derivative: "Derivative",
-  integral: "Integrals",
-  series: "Series",
-  all: "All"
+  unit1: "Unit 1",
+  unit2: "Unit 2",
+  unit3: "Unit 3",
+  unit4: "Unit 4",
+  unit5: "Unit 5",
+  unit6: "Unit 6",
+  unit7: "Unit 7",
+  unit8: "Unit 8",
+  unit9: "Unit 9",
+  unit10: "Unit 10"
 };
-
-if (!desmosSpeedrunDifficulty[desmosSettings.speedrunDifficulty]) desmosSettings.speedrunDifficulty = "normal";
-if (!desmosTypingDifficulty[desmosSettings.typingDifficulty]) desmosSettings.typingDifficulty = "normal";
+const modeOrder = Object.keys(modeLabels);
 
 const ctx = elements.canvas.getContext("2d");
 const particles = [];
@@ -180,8 +191,8 @@ let desmosPromptTooltip = null;
 const desmosPromptTooltipSize = { width: 270, height: 48 };
 const desmosAnswerExpressionId = "bc-blitz-desmos-answer";
 const floatingColors = ["#23b26d", "#31b7d6", "#efb938", "#f5f1e7"];
-const formulaPoolLimit = 132;
-const formulaCycleRate = 0.33;
+const formulaPoolLimit = 118;
+const formulaCycleRate = 0.31;
 const goldenAngle = Math.PI * (3 - Math.sqrt(5));
 
 const rand = (min, max) => Math.random() * (max - min) + min;
@@ -208,7 +219,25 @@ const desmosPrompts = [
   { label: "Tangent", latex: "y=\\tan(x)", answer: "y=tan(x)" },
   { label: "Pi", latex: "y=\\pi x", answer: "y=pi x" },
   { label: "Restriction", latex: "y=x^2\\{x>0\\}", answer: "y=x^2{x>0}" },
+  { label: "Restricted Parabola", latex: "y=(x^2-4)\\{-2<x<3\\}", answer: "y=(x^2-4){-2<x<3}" },
+  { label: "Upper Semicircle", latex: "y=\\sqrt{25-x^2}\\{-5\\le x\\le5\\}", answer: "y=sqrt(25-x^2){-5<=x<=5}" },
+  { label: "Log Domain", latex: "y=\\ln(x-1)\\{x>1\\}", answer: "y=ln(x-1){x>1}" },
+  { label: "Trig Window", latex: "y=\\sin(x)\\{0\\le x\\le2\\pi\\}", answer: "y=sin(x){0<=x<=2pi}" },
+  { label: "Absolute Ray", latex: "y=|x-4|\\{x\\ge4\\}", answer: "y=abs(x-4){x>=4}" },
+  { label: "Rational Branch", latex: "y=\\frac{x+1}{x-2}\\{x>2\\}", answer: "y=(x+1)/(x-2){x>2}" },
+  { label: "Restricted Line", latex: "y=3x-1\\{-1\\le x\\le4\\}", answer: "y=3x-1{-1<=x<=4}" },
+  { label: "Restricted Cubic", latex: "y=x^3-3x\\{-2\\le x\\le2\\}", answer: "y=x^3-3x{-2<=x<=2}" },
+  { label: "Inequality", latex: "y>x^2-4", answer: "y>x^2-4" },
+  { label: "Ellipse", latex: "\\frac{(x-1)^2}{9}+\\frac{(y+2)^2}{4}=1", answer: "((x-1)^2)/9+((y+2)^2)/4=1" },
+  { label: "Shifted Circle", latex: "(x-2)^2+(y+3)^2=16", answer: "(x-2)^2+(y+3)^2=16" },
+  { label: "Polar Rose", latex: "r=2\\sin(3\\theta)", answer: "r=2sin(3theta)" },
   { label: "Composite", latex: "y=\\sqrt{x^2+1}", answer: "y=sqrt(x^2+1)" },
+  {
+    label: "Parametric Circle",
+    collegeboard: ["x=\\cos(t)", "y=\\sin(t)"],
+    desmos: ["x(t)=\\cos(t)", "y(t)=\\sin(t)"],
+    answer: ["x(t)=cos(t)", "y(t)=sin(t)"]
+  },
   {
     label: "Derivative",
     collegeboard: ["f(x)=x^3-4x", { type: "mixed", parts: ["derivative of ", { math: "f(x)" }] }],
@@ -253,28 +282,437 @@ const desmosPrompts = [
   }
 ];
 
+function signedTerm(value, body = "") {
+  if (value === 0) return "";
+  const magnitude = Math.abs(value);
+  const text = body ? `${magnitude === 1 ? "" : magnitude}${body}` : String(magnitude);
+  return `${value < 0 ? "-" : "+"}${text}`;
+}
+
+function leadingTerm(value, body = "") {
+  if (value === 0) return "";
+  const magnitude = Math.abs(value);
+  const text = body ? `${magnitude === 1 ? "" : magnitude}${body}` : String(magnitude);
+  return `${value < 0 ? "-" : ""}${text}`;
+}
+
+function cleanExpression(value) {
+  return String(value || "")
+    .replace(/^\+/, "")
+    .replace(/\+\-/g, "-")
+    .replace(/\-\-/g, "+")
+    .replace(/\s+/g, "");
+}
+
+const unityCoefficientPattern = /(^|[=+\-({\[,])1(?=(?:[a-zA-Z]|\\(?:sin|cos|tan|sec|csc|cot|ln|log|sqrt|abs|pi|theta|operatorname|mathrm|left)))/g;
+
+function omitUnityCoefficients(value) {
+  return String(value || "").replace(unityCoefficientPattern, "$1");
+}
+
+function normalizeDesmosPromptPart(part) {
+  if (Array.isArray(part)) return part.map(normalizeDesmosPromptPart);
+  if (part && typeof part === "object") {
+    if (part.type === "mixed") {
+      return { ...part, parts: (part.parts || []).map(normalizeDesmosPromptPart) };
+    }
+    if (Object.prototype.hasOwnProperty.call(part, "math")) {
+      return { ...part, math: omitUnityCoefficients(part.math) };
+    }
+    if (part.type === "math" && Object.prototype.hasOwnProperty.call(part, "value")) {
+      return { ...part, value: omitUnityCoefficients(part.value) };
+    }
+    return part;
+  }
+  return part;
+}
+
+function normalizeDesmosPromptContent(value) {
+  if (Array.isArray(value)) return value.map(normalizeDesmosPromptContent);
+  if (value && typeof value === "object") return normalizeDesmosPromptPart(value);
+  return omitUnityCoefficients(value);
+}
+
+function randomNonZero(min, max) {
+  let value = 0;
+  while (value === 0) value = randInt(min, max);
+  return value;
+}
+
+function randomFunctionName() {
+  return pick(["f", "g", "h", "p", "q"]);
+}
+
+function makePolynomial(variable = "x", degree = 3) {
+  if (degree === 2) {
+    return cleanExpression(`${leadingTerm(randomNonZero(-4, 4), `${variable}^2`)}${signedTerm(randInt(-6, 6), variable)}${signedTerm(randInt(-8, 8))}`);
+  }
+  return cleanExpression(`${leadingTerm(randomNonZero(-3, 3), `${variable}^3`)}${signedTerm(randInt(-5, 5), `${variable}^2`)}${signedTerm(randInt(-6, 6), variable)}${signedTerm(randInt(-8, 8))}`);
+}
+
+function generatedSimplePrompt() {
+  const kind = randInt(1, 12);
+  if (kind === 1) {
+    const expr = makePolynomial("x", 2);
+    return { label: "Generated Quadratic", latex: `y=${expr}`, answer: `y=${expr}`, signature: `quad:${expr}` };
+  }
+  if (kind === 2) {
+    const a = randomNonZero(-4, 4);
+    const b = randInt(-8, 8);
+    const c = randomNonZero(-5, 5);
+    const numerator = cleanExpression(`${leadingTerm(a, "x")}${signedTerm(b)}`);
+    return {
+      label: "Generated Rational",
+      latex: `y=\\frac{${numerator}}{x${signedTerm(-c)}}`,
+      answer: `y=(${numerator})/(x${signedTerm(-c)})`,
+      signature: `rat:${numerator}:${c}`
+    };
+  }
+  if (kind === 3) {
+    const a = randomNonZero(1, 5);
+    const b = randInt(-8, 8);
+    const inside = cleanExpression(`${leadingTerm(a, "x")}${signedTerm(b)}`);
+    return { label: "Generated Square Root", latex: `y=\\sqrt{${inside}}`, answer: `y=sqrt(${inside})`, signature: `sqrt:${inside}` };
+  }
+  if (kind === 4) {
+    const a = randomNonZero(-4, 4);
+    const b = randInt(-8, 8);
+    const inside = cleanExpression(`${leadingTerm(a, "x")}${signedTerm(b)}`);
+    return { label: "Generated Absolute Value", latex: `y=|${inside}|`, answer: `y=abs(${inside})`, signature: `abs:${inside}` };
+  }
+  if (kind === 5) {
+    const a = randomNonZero(1, 4);
+    const b = randomNonZero(1, 4);
+    return { label: "Generated Trig", latex: `y=${a}\\sin(${b}x)`, answer: `y=${a}sin(${b}x)`, signature: `trig:${a}:${b}` };
+  }
+  if (kind === 6) {
+    const h = randInt(-4, 4);
+    const k = randInt(-4, 4);
+    const r = randInt(2, 7);
+    return {
+      label: "Generated Circle",
+      latex: `(x${signedTerm(-h)})^2+(y${signedTerm(-k)})^2=${r * r}`,
+      answer: `(x${signedTerm(-h)})^2+(y${signedTerm(-k)})^2=${r * r}`,
+      signature: `circle:${h}:${k}:${r}`
+    };
+  }
+  if (kind === 7) {
+    const h = randInt(-3, 3);
+    const k = randInt(-3, 3);
+    const a = pick([4, 9, 16]);
+    const b = pick([4, 9, 16].filter((value) => value !== a));
+    return {
+      label: "Generated Ellipse",
+      latex: `\\frac{(x${signedTerm(-h)})^2}{${a}}+\\frac{(y${signedTerm(-k)})^2}{${b}}=1`,
+      answer: `((x${signedTerm(-h)})^2)/${a}+((y${signedTerm(-k)})^2)/${b}=1`,
+      signature: `ellipse:${h}:${k}:${a}:${b}`
+    };
+  }
+  if (kind === 8) {
+    const expr = makePolynomial("x", 2);
+    const low = randInt(-4, 0);
+    const high = randInt(1, 5);
+    return {
+      label: "Generated Restriction",
+      latex: `y=${expr}\\{${low}\\le x\\le${high}\\}`,
+      answer: `y=${expr}{${low}<=x<=${high}}`,
+      signature: `restriction:${expr}:${low}:${high}`
+    };
+  }
+  if (kind === 9) {
+    const a = randomNonZero(1, 4);
+    const b = randInt(-5, 5);
+    const inside = cleanExpression(`${leadingTerm(a, "x")}${signedTerm(b)}`);
+    return { label: "Generated Log", latex: `y=\\ln(${inside})`, answer: `y=ln(${inside})`, signature: `ln:${inside}` };
+  }
+  if (kind === 10) {
+    const a = randomNonZero(1, 4);
+    const b = randInt(-5, 5);
+    return { label: "Generated Exponential", latex: `y=${a}e^x${signedTerm(b)}`, answer: `y=${a}e^x${signedTerm(b)}`, signature: `exp:${a}:${b}` };
+  }
+  if (kind === 11) {
+    const a = randomNonZero(1, 4);
+    const b = randomNonZero(1, 5);
+    return { label: "Generated Polar", latex: `r=${a}\\sin(${b}\\theta)`, answer: `r=${a}sin(${b}\\theta)`, signature: `polar:${a}:${b}` };
+  }
+  const slopeTop = randomNonZero(-5, 5);
+  const slopeBottom = randInt(2, 6);
+  const b = randInt(-8, 8);
+  return {
+    label: "Generated Line",
+    latex: `y=\\frac{${slopeTop}}{${slopeBottom}}x${signedTerm(b)}`,
+    answer: `y=(${slopeTop}/${slopeBottom})x${signedTerm(b)}`,
+    signature: `line:${slopeTop}:${slopeBottom}:${b}`
+  };
+}
+
+function generatedCalculusPrompt() {
+  const kind = randInt(1, 7);
+  const fn = randomFunctionName();
+  if (kind === 1) {
+    const expr = makePolynomial("x", 3);
+    return {
+      label: "Generated Derivative",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["derivative of ", { math: `${fn}(x)` }] }],
+      desmos: [`${fn}(x)=${expr}`, `${fn}'(x)`],
+      answer: [`${fn}(x)=${expr}`, `${fn}'(x)`],
+      signature: `deriv:${fn}:${expr}`
+    };
+  }
+  if (kind === 2) {
+    const expr = makePolynomial("x", 3);
+    const at = randInt(-3, 4);
+    return {
+      label: "Generated Rate of Change",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["rate of change of ", { math: fn }, " at ", { math: `x=${at}` }] }],
+      desmos: [`${fn}(x)=${expr}`, `${fn}'(${at})`],
+      answer: [`${fn}(x)=${expr}`, `${fn}'(${at})`],
+      signature: `rate:${fn}:${expr}:${at}`
+    };
+  }
+  if (kind === 3) {
+    const expr = makePolynomial("t", 2);
+    const upper = randInt(2, 7);
+    return {
+      label: "Generated Net Change",
+      collegeboard: [`v(t)=${expr}`, { type: "mixed", parts: ["net change on ", { math: `[0,${upper}]` }] }],
+      desmos: [`v(t)=${expr}`, `\\int_0^${upper} v(t)dt`],
+      answer: [`v(t)=${expr}`, `\\int_0^${upper} v(t)dt`],
+      signature: `net:${expr}:${upper}`
+    };
+  }
+  if (kind === 4) {
+    const expr = makePolynomial("x", 2);
+    const upper = randInt(2, 6);
+    return {
+      label: "Generated Area",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["area under ", { math: fn }, " on ", { math: `[0,${upper}]` }] }],
+      desmos: [`${fn}(x)=${expr}`, `\\int_0^${upper} ${fn}(x)dx`],
+      answer: [`${fn}(x)=${expr}`, `\\int_0^${upper} ${fn}(x)dx`],
+      signature: `area:${fn}:${expr}:${upper}`
+    };
+  }
+  if (kind === 5) {
+    const expr = makePolynomial("x", 2);
+    const lower = randInt(0, 2);
+    const upper = randInt(lower + 2, lower + 6);
+    return {
+      label: "Generated Average Value",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["average value on ", { math: `[${lower},${upper}]` }] }],
+      desmos: [`${fn}(x)=${expr}`, `\\frac{1}{${upper - lower}}\\int_${lower}^${upper} ${fn}(x)dx`],
+      answer: [`${fn}(x)=${expr}`, `\\frac{1}{${upper - lower}}\\int_${lower}^${upper} ${fn}(x)dx`],
+      signature: `avg:${fn}:${expr}:${lower}:${upper}`
+    };
+  }
+  if (kind === 6) {
+    const a = randomNonZero(1, 4);
+    const b = randomNonZero(1, 4);
+    return {
+      label: "Generated Polar Area",
+      collegeboard: [`r(\\theta)=${a}\\sin(${b}\\theta)`, { type: "mixed", parts: ["area of ", { math: "r(\\theta)" }, " on ", { math: "[0,\\pi]" }] }],
+      desmos: [`r(\\theta)=${a}\\sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^\\pi r(\\theta)^2d\\theta`],
+      answer: [`r(\\theta)=${a}sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^\\pi r(\\theta)^2d\\theta`],
+      signature: `polar-area:${a}:${b}`
+    };
+  }
+  const a = randomNonZero(1, 4);
+  const b = randomNonZero(1, 4);
+  return {
+    label: "Generated Parametric",
+    collegeboard: [`x=${a}\\cos(t)`, `y=${b}\\sin(t)`],
+    desmos: [`x(t)=${a}\\cos(t)`, `y(t)=${b}\\sin(t)`],
+    answer: [`x(t)=${a}cos(t)`, `y(t)=${b}sin(t)`],
+    signature: `param:${a}:${b}`
+  };
+}
+
+function generateDesmosPrompt() {
+  return Math.random() < 0.62 ? generatedCalculusPrompt() : generatedSimplePrompt();
+}
+
 const mathTypingTerms = [
-  "sqrt",
-  "sqrt(x)",
-  "x",
+  "y=x^2+3x-4",
+  "y=sqrtx+5→",
+  "y=(x+1)/(x-2)",
+  "y=abs(x-3)",
+  "y=2sin(x)",
+  "y=cos(2x)",
+  "y=ln(x)+1",
+  "y=e^x-4",
+  "x^2+y^2=25",
+  "y=(2/3)x-5",
+  "y=tan(x)",
+  "y=pi*x",
+  "y=x^2{x>0}",
+  "sqrtx^2+1→",
+  "sqrtx→",
   "x^2",
   "x^3",
+  "x^4-3x^2+2",
   "f(x)",
   "g(x)",
+  "f(x)=x^3-4x",
+  "g(x)=sqrtx+1→",
   "f'(x)",
   "g'(x)",
-  "int",
-  "int_0^1",
-  "d/dx",
-  "sin",
-  "cos",
-  "tan",
-  "ln",
-  "abs",
-  "pi",
-  "theta",
-  "r(theta)"
+  "f''(x)",
+  "g''(x)",
+  "f'(2)",
+  "int→0↑x→f(t)dt",
+  "int→0↑4→v(t)dt",
+  "int→0↑3→f(x)dx",
+  "int→1↑e→f(x)dx",
+  "int→0↑pi→.5r(theta)^2dtheta",
+  "d/dx(x^3-4x)",
+  "dy/dx",
+  "dx/dt",
+  "dy/dt",
+  "dr/dtheta",
+  "d^2y/dx^2",
+  "sin(x)",
+  "cos(x)",
+  "tan(x)",
+  "1/cos(x)^2",
+  "sin(theta)",
+  "cos(theta)",
+  "ln(x)",
+  "e^x",
+  "abs(x)",
+  "pi*x",
+  "2theta",
+  "r(theta)",
+  "r'(theta)",
+  "r(theta)=2sin(theta)",
+  "x(t)=cos(t)",
+  "y(t)=sin(t)",
+  "sqrtx+5→+2",
+  "(x+1)/(x-2)→^2",
+  "x^3→-4x",
+  "int→0↑x→f(t)dt",
+  "sin(theta)→+cos(theta)",
+  "↵"
 ];
+
+const mathTypingKeyboardRows = [
+  [
+    { key: "`", label: "`" },
+    { key: "1", label: "1" },
+    { key: "2", label: "2" },
+    { key: "3", label: "3" },
+    { key: "4", label: "4" },
+    { key: "5", label: "5" },
+    { key: "6", label: "6" },
+    { key: "7", label: "7" },
+    { key: "8", label: "8" },
+    { key: "9", label: "9" },
+    { key: "0", label: "0" },
+    { key: "-", label: "-" },
+    { key: "=", label: "=" },
+    { key: "backspace", label: "backspace", wide: true }
+  ],
+  [
+    { key: "tab", label: "tab", wide: true },
+    { key: "q", label: "q" },
+    { key: "w", label: "w" },
+    { key: "e", label: "e" },
+    { key: "r", label: "r" },
+    { key: "t", label: "t" },
+    { key: "y", label: "y" },
+    { key: "u", label: "u" },
+    { key: "i", label: "i" },
+    { key: "o", label: "o" },
+    { key: "p", label: "p" },
+    { key: "[", label: "[" },
+    { key: "]", label: "]" },
+    { key: "\\", label: "\\" }
+  ],
+  [
+    { key: "caps", label: "caps", wide: true },
+    { key: "a", label: "a" },
+    { key: "s", label: "s" },
+    { key: "d", label: "d" },
+    { key: "f", label: "f" },
+    { key: "g", label: "g" },
+    { key: "h", label: "h" },
+    { key: "j", label: "j" },
+    { key: "k", label: "k" },
+    { key: "l", label: "l" },
+    { key: ";", label: ";" },
+    { key: "'", label: "'" },
+    { key: "enter", label: "enter", wide: true }
+  ],
+  [
+    { key: "shift", label: "shift", wide: true },
+    { key: "z", label: "z" },
+    { key: "x", label: "x" },
+    { key: "c", label: "c" },
+    { key: "v", label: "v" },
+    { key: "b", label: "b" },
+    { key: "n", label: "n" },
+    { key: "m", label: "m" },
+    { key: ",", label: "," },
+    { key: ".", label: "." },
+    { key: "/", label: "/" },
+    { key: "shift", label: "shift", wide: true }
+  ],
+  [
+    { key: "ctrl", label: "ctrl", wide: true },
+    { key: "alt", label: "alt", wide: true },
+    { key: "space", label: "space", extraWide: true },
+    { key: "alt", label: "alt", wide: true },
+    { key: "ctrl", label: "ctrl", wide: true }
+  ],
+  [
+    { key: "arrowleft", label: "←" },
+    { key: "arrowup", label: "↑" },
+    { key: "arrowdown", label: "↓" },
+    { key: "arrowright", label: "→" }
+  ]
+];
+
+const mathTypingArrowKeyChars = {
+  ArrowLeft: "←",
+  ArrowRight: "→",
+  ArrowUp: "↑",
+  ArrowDown: "↓"
+};
+
+const mathTypingSpecialKeyChars = {
+  ...mathTypingArrowKeyChars,
+  Enter: "↵"
+};
+
+const mathTypingArrowCharKeys = {
+  "←": "arrowleft",
+  "→": "arrowright",
+  "↑": "arrowup",
+  "↓": "arrowdown",
+  "↵": "enter"
+};
+
+const mathTypingShiftKeyMap = {
+  "~": "`",
+  "!": "1",
+  "@": "2",
+  "#": "3",
+  "$": "4",
+  "%": "5",
+  "^": "6",
+  "&": "7",
+  "*": "8",
+  "(": "9",
+  ")": "0",
+  "_": "-",
+  "+": "=",
+  "{": "[",
+  "}": "]",
+  "|": "\\",
+  ":": ";",
+  "\"": "'",
+  "<": ",",
+  ">": ".",
+  "?": "/"
+};
 
 function createFloatingFormulaLatex(category = "mixed") {
   const integralFormulas = [
@@ -368,6 +806,22 @@ function createFloatingFormulaLatex(category = "mixed") {
   return pick(pools[category] || pools[pick(fallback)]);
 }
 
+function createFloatingIntegralBody() {
+  return pick([
+    " f(x) dx",
+    " x dx",
+    " x^2 dx",
+    " 1/x dx",
+    "_0^1 f(x) dx",
+    "_a^b f(x) dx",
+    "_0^x f(t) dt",
+    " e^x dx",
+    " sin x dx",
+    " v(t) dt",
+    " r^2 dθ"
+  ]);
+}
+
 function gcd(a, b) {
   let x = Math.abs(a);
   let y = Math.abs(b);
@@ -396,7 +850,7 @@ function piMultiple(numerator, denominator = 1) {
 }
 
 function limitExpression(condition, expression) {
-  return `\\lim\\limits_{${condition}}${expression}`;
+  return `\\lim_{${condition}}${expression}`;
 }
 
 function term(coefficient, variable = "x", power = 1) {
@@ -506,6 +960,7 @@ function renderStaticMath(target, latex, fresh = false) {
     target.replaceWith(node);
   }
 
+  node.dataset.rawLatex = latex;
   node.textContent = latex;
   node.classList.remove("math-fallback");
 
@@ -527,6 +982,17 @@ function renderStaticMath(target, latex, fresh = false) {
   }
 
   return node;
+}
+
+function repairBlankMathNode(node) {
+  if (!node || node.classList.contains("math-fallback")) return;
+  const rawLatex = node.dataset.rawLatex || "";
+  const visibleText = (node.textContent || "").replace(/\s+/g, "");
+  const root = node.querySelector(".mq-root-block");
+  const hasVisibleMath = visibleText.length > 0 || (root && root.getBoundingClientRect().width > 2);
+  if (hasVisibleMath) return;
+  node.textContent = rawLatex;
+  node.classList.add("math-fallback");
 }
 
 function renderDataLatex(root = document, options = {}) {
@@ -647,6 +1113,11 @@ function desmosLatexToText(value) {
     .replace(/\\left/g, "")
     .replace(/\\right/g, "")
     .replace(/\\cdot|\\times/g, "*")
+    .replace(/\\leq?|≤/g, "<=")
+    .replace(/\\geq?|≥/g, ">=")
+    .replace(/\\neq?|≠/g, "!=")
+    .replace(/\\operatorname\{([^{}]+)\}/g, "$1")
+    .replace(/\\mathrm\{([^{}]+)\}/g, "$1")
     .replace(/\\pi/g, "pi")
     .replace(/\\\{/g, "{")
     .replace(/\\\}/g, "}")
@@ -681,7 +1152,7 @@ function canonicalizeSimpleFractions(value) {
 }
 
 function normalizeDesmosInput(value) {
-  return canonicalizeSimpleFractions(desmosLatexToText(value)
+  return canonicalizeSimpleFractions(omitUnityCoefficients(desmosLatexToText(value)
     .toLowerCase()
     .replace(/\s+/g, "")
     .replace(/\u03c0/g, "pi")
@@ -692,7 +1163,7 @@ function normalizeDesmosInput(value) {
     .replace(/\u00f7/g, "/")
     .replace(/\u00d7/g, "*")
     .replace(/[{}]/g, "")
-    .replace(/\*/g, ""))
+    .replace(/\*/g, "")))
     .replace(/abs\(([^()]+)\)/g, "abs$1")
     .replace(/\|([^|]+)\|/g, "abs$1")
     .replace(/\(([^()+\-*/]+)\)/g, "$1")
@@ -717,9 +1188,13 @@ function desmosLinesMatch(typedLines, expectedLines) {
 }
 
 function pickDesmosPrompt() {
-  let prompt = pick(desmosPrompts);
+  let prompt = Math.random() < 0.9 ? generateDesmosPrompt() : pick(desmosPrompts);
   if (desmosPrompts.length > 1) {
-    while (prompt === desmosState.current) prompt = pick(desmosPrompts);
+    let guard = 0;
+    while ((prompt === desmosState.current || (desmosState.current && prompt.signature === desmosState.current.signature)) && guard < 12) {
+      guard += 1;
+      prompt = Math.random() < 0.9 ? generateDesmosPrompt() : pick(desmosPrompts);
+    }
   }
   return prompt;
 }
@@ -775,15 +1250,15 @@ function nextDesmosPrompt() {
   }, 120);
 }
 
-function scheduleNextDesmosPrompt(previousPrompt) {
+function scheduleNextDesmosPrompt() {
   clearPendingDesmosAdvance();
   const token = desmosState.advanceToken + 1;
   desmosState.advanceToken = token;
   desmosState.advanceTimer = window.setTimeout(() => {
     desmosState.advanceTimer = 0;
-    if (!desmosState.running || desmosState.current !== previousPrompt || desmosState.advanceToken !== token) return;
+    if (!desmosState.running || desmosState.mode !== "speedrun" || desmosState.advanceToken !== token) return;
     nextDesmosPrompt();
-  }, 1000);
+  }, 650);
 }
 
 function isDesmosSpeedrunTimerActive() {
@@ -799,6 +1274,14 @@ function updateDesmosTimerView() {
   if (active) {
     elements.timeBar.style.transform = `scaleX(${clamp(desmosState.time / desmosState.maxTime, 0, 1)})`;
   }
+  updateDesmosScoreView();
+}
+
+function updateDesmosScoreView() {
+  if (!elements.desmosScore) return;
+  const visible = desmosSettings.timebar && desmosState.mode === "speedrun";
+  elements.desmosScore.hidden = !visible;
+  elements.desmosScore.textContent = `Score: ${desmosState.score}`;
 }
 
 function flashDesmosTime() {
@@ -807,10 +1290,13 @@ function flashDesmosTime() {
 }
 
 function getPromptCardContent(prompt, target) {
+  let content = null;
   if (target.closest(".prompt-mathquill")) {
-    return prompt.desmos || prompt.desmosLatex || prompt.latex;
+    content = prompt.desmos || prompt.desmosLatex || prompt.latex;
+  } else {
+    content = prompt.collegeboard || prompt.latex;
   }
-  return prompt.collegeboard || prompt.latex;
+  return normalizeDesmosPromptContent(content);
 }
 
 function getDesmosPromptCards() {
@@ -828,6 +1314,11 @@ function createDesmosPromptFontNode() {
 function renderDesmosPromptFonts(prompt) {
   elements.desmosPromptFonts = getDesmosPromptCards().map((card) => renderDesmosPromptCard(card, prompt));
   ensureDesmosPromptCardsFilled(prompt);
+  [0, 90, 220, 520].forEach((delay) => {
+    window.setTimeout(() => {
+      if (desmosState.current === prompt) ensureDesmosPromptCardsFilled(prompt);
+    }, delay);
+  });
 }
 
 function renderDesmosPromptCard(card, prompt) {
@@ -898,29 +1389,119 @@ function renderDesmosPromptMixed(node, parts) {
 }
 
 function renderDesmosPromptMath(node, latex) {
+  const source = String(latex || "");
+  const displaySource = desmosPromptLatexForMathQuill(source);
+  const fallback = desmosPromptDisplayText(displaySource) || displaySource || source;
   node.innerHTML = "";
-  node.classList.remove("math-fallback");
+  node.dataset.source = displaySource;
+  node.dataset.fallback = fallback;
+  node.classList.remove("math-fallback", "prompt-plain-math", "desmos-prompt-raw-latex");
 
   const mq = getMathQuill();
   if (!mq) {
-    node.textContent = latex;
-    node.classList.add("math-fallback");
+    node.textContent = displaySource;
+    node.classList.add("desmos-prompt-raw-latex");
     return node;
   }
 
   try {
-    const rendered = mq.StaticMath(node);
-    if (rendered && typeof rendered.latex === "function") rendered.latex(latex);
-    if (!node.querySelector(".mq-root-block") || !node.textContent.trim()) {
-      node.textContent = latex;
-      node.classList.add("math-fallback");
+    node.textContent = displaySource;
+    mq.StaticMath(node);
+    if (!node.querySelector(".mq-root-block")) {
+      node.textContent = displaySource;
+      node.classList.add("desmos-prompt-raw-latex");
     }
   } catch {
-    node.textContent = latex;
-    node.classList.add("math-fallback");
+    node.textContent = displaySource;
+    node.classList.add("desmos-prompt-raw-latex");
   }
 
   return node;
+}
+
+function desmosPromptLatexForMathQuill(value) {
+  return String(value || "")
+    .replace(/\\\{/g, "\\left\\{")
+    .replace(/\\\}/g, "\\right\\}");
+}
+
+function replaceFirstLatexGroup(text, command, formatter) {
+  const start = text.indexOf(command + "{");
+  if (start < 0) return null;
+  let depth = 0;
+  const groupStart = start + command.length + 1;
+  for (let index = groupStart; index < text.length; index += 1) {
+    if (text[index] === "{") depth += 1;
+    if (text[index] === "}") {
+      if (depth === 0) {
+        const inner = text.slice(groupStart, index);
+        return text.slice(0, start) + formatter(inner) + text.slice(index + 1);
+      }
+      depth -= 1;
+    }
+  }
+  return null;
+}
+
+function replaceFirstLatexFraction(text) {
+  const start = text.indexOf("\\frac{");
+  if (start < 0) return null;
+  let depth = 0;
+  const topStart = start + 6;
+  let topEnd = -1;
+  for (let index = topStart; index < text.length; index += 1) {
+    if (text[index] === "{") depth += 1;
+    if (text[index] === "}") {
+      if (depth === 0) {
+        topEnd = index;
+        break;
+      }
+      depth -= 1;
+    }
+  }
+  if (topEnd < 0 || text[topEnd + 1] !== "{") return null;
+  depth = 0;
+  const bottomStart = topEnd + 2;
+  for (let index = bottomStart; index < text.length; index += 1) {
+    if (text[index] === "{") depth += 1;
+    if (text[index] === "}") {
+      if (depth === 0) {
+        const top = desmosPromptDisplayText(text.slice(topStart, topEnd));
+        const bottom = desmosPromptDisplayText(text.slice(bottomStart, index));
+        return text.slice(0, start) + `(${top})/(${bottom})` + text.slice(index + 1);
+      }
+      depth -= 1;
+    }
+  }
+  return null;
+}
+
+function desmosPromptDisplayText(value) {
+  let text = String(value || "");
+  let next = "";
+  while ((next = replaceFirstLatexFraction(text)) !== null) text = next;
+  while ((next = replaceFirstLatexGroup(text, "\\sqrt", (inner) => `√(${desmosPromptDisplayText(inner)})`)) !== null) text = next;
+  return text
+    .replace(/\\left|\\right/g, "")
+    .replace(/\\,/g, "")
+    .replace(/\\leq?|≤/g, "≤")
+    .replace(/\\geq?|≥/g, "≥")
+    .replace(/\\neq?|≠/g, "≠")
+    .replace(/\\pi/g, "π")
+    .replace(/\\theta/g, "θ")
+    .replace(/\\int/g, "∫")
+    .replace(/\\sin/g, "sin")
+    .replace(/\\cos/g, "cos")
+    .replace(/\\tan/g, "tan")
+    .replace(/\\ln/g, "ln")
+    .replace(/\\log/g, "log")
+    .replace(/\\\{/g, "{")
+    .replace(/\\\}/g, "}")
+    .replace(/\^\{([^{}]+)\}/g, "^$1")
+    .replace(/_\{([^{}]+)\}/g, "_$1")
+    .replace(/\\/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function desmosPromptPlainText(value) {
@@ -928,16 +1509,50 @@ function desmosPromptPlainText(value) {
   if (value && typeof value === "object") {
     if (value.type === "text") return String(value.value || "");
     if (value.type === "mixed") return (value.parts || []).map(desmosPromptPlainText).join("");
-    if (value.math) return String(value.math);
+    if (value.math) return desmosPromptDisplayText(value.math);
   }
-  return String(value || "");
+  return desmosPromptDisplayText(value);
+}
+
+function hasDesmosPromptContent(node) {
+  if (!node) return false;
+  const text = String(node.textContent || "").replace(/\u200b/g, "").replace(/\s+/g, "");
+  if (text.length > 0) return true;
+  if (!node.querySelector) return false;
+  if (node.querySelector(".desmos-prompt-text-line, .math-fallback")) return true;
+  const root = node.classList && node.classList.contains("mq-root-block") ? node : node.querySelector(".mq-root-block");
+  if (!root) return false;
+  const html = String(root.innerHTML || "").replace(/\s+/g, "");
+  return html.length > 0 && !(html.startsWith("<span") && html.endsWith("></span>"));
+}
+
+function isDesmosPromptNodeVisible(node) {
+  if (!node) return false;
+  if (node.classList.contains("math-fallback") || node.classList.contains("desmos-prompt-raw-latex")) return hasDesmosPromptContent(node);
+  if (node.classList.contains("prompt-multiline") || node.classList.contains("desmos-prompt-mixed-line")) {
+    const children = [...node.children];
+    return children.length > 0 && children.every(isDesmosPromptNodeVisible);
+  }
+
+  const mathRoot = node.querySelector && node.querySelector(".mq-root-block");
+  if (!mathRoot) {
+    if (node.children && node.children.length) return [...node.children].some(isDesmosPromptNodeVisible);
+    return hasDesmosPromptContent(node);
+  }
+  if (typeof mathRoot.getBoundingClientRect !== "function") return false;
+
+  const rect = mathRoot.getBoundingClientRect();
+  return rect.width > 1 && rect.height > 1 && hasDesmosPromptContent(mathRoot);
+}
+
+function isDesmosPromptCardVisible(card) {
+  if (!card) return false;
+  const node = card.querySelector("[data-desmos-prompt-font]") || card;
+  return isDesmosPromptNodeVisible(node);
 }
 
 function ensureDesmosPromptVisible(node, source, prompt) {
-  if (node.textContent.trim()) return node;
-  const fallback = desmosPromptPlainText(source || (prompt && prompt.latex) || (prompt && prompt.answer) || "");
-  node.classList.add("math-fallback");
-  node.textContent = fallback || "new problem";
+  if (isDesmosPromptNodeVisible(node)) return node;
   return node;
 }
 
@@ -949,9 +1564,11 @@ function renderDesmosPromptFallback(prompt, node = null, source = null) {
     target.replaceChildren(nextNode);
     target = nextNode;
   }
-  const fallback = desmosPromptPlainText(source || (prompt && (prompt.collegeboard || prompt.latex || prompt.answer)) || "");
-  target.className = "math-render desmos-prompt-font math-fallback";
+  const fallbackSource = source || normalizeDesmosPromptContent((prompt && (prompt.collegeboard || prompt.latex || prompt.answer)) || "");
+  const fallback = desmosPromptLatexForMathQuill(fallbackSource);
+  target.className = "math-render desmos-prompt-font desmos-prompt-raw-latex";
   target.setAttribute("data-desmos-prompt-font", "");
+  target.dataset.fallback = fallback || "new problem";
   target.textContent = fallback || "new problem";
   return target;
 }
@@ -961,15 +1578,18 @@ function ensureDesmosPromptCardsFilled(prompt = desmosState.current) {
   const cards = getDesmosPromptCards();
   if (!cards.length) return false;
 
-  cards.forEach((card) => {
-    if (!card.textContent.trim()) renderDesmosPromptCard(card, prompt);
+  const visibleCards = cards.filter((card) => !(window.getComputedStyle && window.getComputedStyle(card).display === "none"));
+  visibleCards.forEach((card) => {
+    if (window.getComputedStyle && window.getComputedStyle(card).display === "none") return;
+    if (!isDesmosPromptCardVisible(card)) renderDesmosPromptCard(card, prompt);
+    if (!isDesmosPromptCardVisible(card)) renderDesmosPromptCard(card, prompt);
   });
 
-  return cards.every((card) => card.textContent.trim());
+  return visibleCards.every(isDesmosPromptCardVisible);
 }
 
 function renderDesmosIntroPrompt() {
-  const labels = ["collegeboard font", "desmos font"];
+  const labels = ["collegeboard text", "desmos text"];
   elements.desmosPromptFonts = getDesmosPromptCards().map((card, index) => {
     const node = createDesmosPromptFontNode();
     node.textContent = labels[index] || "";
@@ -1045,14 +1665,14 @@ function checkDesmosLiveAnswer() {
 
   const expected = normalizeDesmosLines(desmosState.current.answer);
   if (desmosLinesMatch(typed, expected)) {
-    const timing = desmosSpeedrunDifficulty[desmosSettings.speedrunDifficulty] || desmosSpeedrunDifficulty.normal;
     desmosState.locked = true;
     desmosState.score += 1;
-    if (desmosSettings.timebar) desmosState.time = clamp(desmosState.time + timing.bonus, 0, desmosState.maxTime);
+    if (desmosSettings.timebar) desmosState.time = clamp(desmosState.time + desmosSpeedrunTiming.bonus, 0, desmosState.maxTime);
+    updateDesmosScoreView();
     setDesmosFeedback("✓ correct", "good");
     flashDesmosTime();
     spawnFormulaBurst(18, true);
-    scheduleNextDesmosPrompt(desmosState.current);
+    scheduleNextDesmosPrompt();
     return;
   }
 
@@ -1065,11 +1685,10 @@ function startDesmosSpeedrun() {
     return;
   }
   clearPendingDesmosTimers();
-  const timing = desmosSpeedrunDifficulty[desmosSettings.speedrunDifficulty] || desmosSpeedrunDifficulty.normal;
   desmosState.running = true;
   desmosState.score = 0;
-  desmosState.time = timing.start;
-  desmosState.maxTime = timing.max;
+  desmosState.time = desmosSpeedrunTiming.start;
+  desmosState.maxTime = desmosSpeedrunTiming.max;
   desmosState.locked = false;
   desmosState.transitioning = false;
   desmosState.advanceToken += 1;
@@ -1087,6 +1706,8 @@ function endDesmosSpeedrun(options = {}) {
   desmosState.transitioning = false;
   desmosState.advanceToken += 1;
   desmosState.promptToken += 1;
+  desmosState.current = null;
+  desmosState.userLatex = [];
   elements.desmosStart.textContent = "Start";
   setDesmosAnswerEnabled(false);
   desmosState.locked = true;
@@ -1117,6 +1738,7 @@ function setDesmosMode(mode) {
   if (nextMode === "typing") {
     window.requestAnimationFrame(() => {
       if (elements.mathTypingInput) elements.mathTypingInput.focus();
+      updateMathTypingKeyboard();
       updateMathTypingCaret();
     });
     return;
@@ -1125,8 +1747,29 @@ function setDesmosMode(mode) {
   if (nextMode === "speedrun") window.setTimeout(initEmbeddedDesmos, 0);
 }
 
+function setStudyMode(mode) {
+  const nextMode = mode === "ap" ? "ap" : "study";
+
+  elements.studyModeButtons.forEach((button) => {
+    const active = button.dataset.studyMode === nextMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  elements.studyModePanels.forEach((panel) => {
+    const active = panel.dataset.studyPanel === nextMode;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
+  });
+
+  elements.navAP.classList.toggle("active", false);
+  elements.navStudy.classList.toggle("active", elements.studyPage.classList.contains("active"));
+  if (nextMode === "study") renderDataLatex(elements.studyPage, { skipHidden: true });
+  elements.studyPage.scrollTop = 0;
+}
+
 function buildMathTypingWords(count = null) {
-  const targetCount = count || (desmosTypingDifficulty[desmosSettings.typingDifficulty] || desmosTypingDifficulty.normal).words;
+  const targetCount = count || mathTypingWordCount;
   const words = [];
   let previous = "";
   for (let i = 0; i < targetCount; i += 1) {
@@ -1139,6 +1782,16 @@ function buildMathTypingWords(count = null) {
     words.push(next);
     previous = next;
   }
+
+  if (targetCount > 0 && !words.some((term) => /[←→↑↓]/.test(term))) {
+    const arrowTerms = mathTypingTerms.filter((term) => /[←→↑↓]/.test(term));
+    words[Math.min(5, targetCount - 1)] = pick(arrowTerms);
+  }
+
+  if (targetCount > 1 && !words.includes("↵")) {
+    words[Math.min(8, targetCount - 1)] = "↵";
+  }
+
   return words;
 }
 
@@ -1290,6 +1943,7 @@ function renderMathTypingWord(term, index) {
   const word = document.createElement("span");
   word.className = "math-type-word word";
   word.dataset.wordindex = String(index);
+  if (term === "↵") word.classList.add("enter-token");
 
   if (index < mathTypingState.index) {
     const typed = mathTypingState.typedTerms[index] || "";
@@ -1341,6 +1995,146 @@ function renderMathTypingResultWords() {
   mathTypingState.words.forEach((term, index) => {
     elements.mathTypingResultWords.appendChild(renderMathTypingWord(term, index));
   });
+}
+
+function ensureMathTypingKeyboard() {
+  if (!elements.mathTypingKeyboard || elements.mathTypingKeyboard.dataset.ready === "true") return;
+
+  elements.mathTypingKeyboard.innerHTML = "";
+  mathTypingKeyboardRows.forEach((row) => {
+    const rowNode = document.createElement("div");
+    rowNode.className = "math-keyboard-row";
+
+    row.forEach((keyItem) => {
+      const keyNode = document.createElement("span");
+      keyNode.className = "math-key";
+      keyNode.dataset.key = keyItem.key;
+      if (keyItem.wide) keyNode.classList.add("wide");
+      if (keyItem.extraWide) keyNode.classList.add("extra-wide");
+
+      const label = document.createElement("span");
+      label.className = "math-key-label";
+      label.textContent = keyItem.label;
+
+      const hint = document.createElement("span");
+      hint.className = "math-key-hint";
+
+      keyNode.append(label, hint);
+      rowNode.appendChild(keyNode);
+    });
+
+    elements.mathTypingKeyboard.appendChild(rowNode);
+  });
+
+  elements.mathTypingKeyboard.dataset.ready = "true";
+}
+
+function getMathTypingNextChar() {
+  if (mathTypingState.finished) return "";
+  const expected = mathTypingState.words[mathTypingState.index] || "";
+  if (!expected) return "";
+
+  const typed = mathTypingState.typed || "";
+  if (typed.length < expected.length) return expected[typed.length];
+  return " ";
+}
+
+function getMathTypingKeyboardTarget(char) {
+  if (!char) return { keys: new Set(), primaryKey: "", display: "", shifted: false };
+  if (/\s/.test(char)) return { keys: new Set(["space"]), primaryKey: "space", display: "space", shifted: false };
+
+  const arrowKey = mathTypingArrowCharKeys[char];
+  if (arrowKey) {
+    return {
+      keys: new Set([arrowKey]),
+      primaryKey: arrowKey,
+      display: char,
+      shifted: false
+    };
+  }
+
+  const shiftedBase = mathTypingShiftKeyMap[char];
+  if (shiftedBase) {
+    return {
+      keys: new Set([shiftedBase, "shift"]),
+      primaryKey: shiftedBase,
+      display: char,
+      shifted: true
+    };
+  }
+
+  const lower = char.toLowerCase();
+  if (char !== lower) {
+    return {
+      keys: new Set([lower, "shift"]),
+      primaryKey: lower,
+      display: char,
+      shifted: true
+    };
+  }
+
+  return { keys: new Set([lower]), primaryKey: lower, display: char, shifted: false };
+}
+
+function updateMathTypingKeyboard() {
+  if (!elements.mathTypingKeyboard) return;
+  ensureMathTypingKeyboard();
+
+  const target = getMathTypingKeyboardTarget(getMathTypingNextChar());
+  const keyNodes = elements.mathTypingKeyboard.querySelectorAll(".math-key");
+  keyNodes.forEach((keyNode) => {
+    const keyId = keyNode.dataset.key || "";
+    const isActive = target.keys.has(keyId);
+    const isPrimary = isActive && keyId === target.primaryKey;
+    const hint = keyNode.querySelector(".math-key-hint");
+
+    keyNode.classList.toggle("active", isActive);
+    keyNode.classList.toggle("primary-active", isPrimary);
+    keyNode.classList.toggle("shifted-active", isPrimary && target.shifted);
+    if (hint) hint.textContent = isPrimary && target.shifted ? target.display : "";
+  });
+
+  const nextLabel = target.display || "";
+  elements.mathTypingKeyboard.setAttribute("aria-label", nextLabel ? `Next key: ${nextLabel}` : "Next key guide");
+  if (elements.mathTypingKeyHint) {
+    if (!nextLabel) {
+      elements.mathTypingKeyHint.textContent = "next key:";
+    } else if (target.shifted) {
+      elements.mathTypingKeyHint.textContent = `next key: shift + ${target.primaryKey} (${nextLabel})`;
+    } else {
+      elements.mathTypingKeyHint.textContent = `next key: ${nextLabel}`;
+    }
+  }
+}
+
+function handleMathTypingSpecialKey(event) {
+  const specialChar = mathTypingSpecialKeyChars[event.key];
+  if (!specialChar || !isMathTypingActive() || mathTypingState.finished) return false;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const expected = mathTypingState.words[mathTypingState.index] || "";
+  const nextChar = expected[mathTypingState.typed.length] || "";
+  if (!mathTypingState.startedAt) mathTypingState.startedAt = performance.now();
+
+  if (nextChar !== specialChar) {
+    mathTypingState.incorrectKeys += 1;
+    updateMathTypingKeyboard();
+    return true;
+  }
+
+  mathTypingState.correctKeys += 1;
+  mathTypingState.typed += specialChar;
+  if (elements.mathTypingInput) elements.mathTypingInput.value = mathTypingState.typed;
+
+  if (mathTypingState.typed === expected) {
+    completeMathTypingTerm(mathTypingState.typed);
+  } else {
+    renderMathTypingGame();
+  }
+
+  return true;
 }
 
 function showMathTypingResult() {
@@ -1401,13 +2195,18 @@ function updateMathTypingCaret() {
   mathTypingState.caretReady = true;
 }
 
+function updateMathTypingViewport() {
+  if (!elements.mathTypingWords) return;
+  elements.mathTypingWords.style.transform = "translateY(0)";
+}
+
 function renderMathTypingGame() {
   if (!elements.mathTypingWords) return;
 
   elements.mathTypingWords.innerHTML = "";
-  mathTypingState.words.forEach((term, index) => {
-    elements.mathTypingWords.appendChild(renderMathTypingWord(term, index));
-  });
+  for (let index = 0; index < mathTypingState.words.length; index += 1) {
+    elements.mathTypingWords.appendChild(renderMathTypingWord(mathTypingState.words[index], index));
+  }
 
   const caret = document.createElement("span");
   caret.className = "math-typing-caret";
@@ -1428,7 +2227,11 @@ function renderMathTypingGame() {
     elements.mathTypingProgress.textContent = `${Math.min(mathTypingState.index, mathTypingState.words.length)}/${mathTypingState.words.length}`;
   }
 
-  window.requestAnimationFrame(updateMathTypingCaret);
+  updateMathTypingKeyboard();
+  window.requestAnimationFrame(() => {
+    updateMathTypingViewport();
+    updateMathTypingCaret();
+  });
 }
 
 function handleMathTypingInput() {
@@ -1466,6 +2269,9 @@ function renderPrompt(target, parts) {
     }
     target.appendChild(span);
   }
+  window.requestAnimationFrame(() => {
+    target.querySelectorAll(".question-math").forEach(repairBlankMathNode);
+  });
 }
 
 function renderChoiceLabel(target, choice) {
@@ -1525,7 +2331,7 @@ function makeFRQ(topic, difficulty, prompt, correct, acceptedAnswers) {
 
 const generators = [
   {
-    category: "derivative",
+    category: "unit2",
     min: 1,
     max: 2,
     build() {
@@ -1543,7 +2349,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit2",
     min: 1,
     max: 2,
     build() {
@@ -1560,7 +2366,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 1,
     max: 3,
     build() {
@@ -1576,7 +2382,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 2,
     max: 4,
     build() {
@@ -1593,7 +2399,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit3",
     min: 2,
     max: 4,
     build() {
@@ -1610,7 +2416,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 1,
     max: 4,
     build() {
@@ -1626,7 +2432,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit3",
     min: 3,
     max: 5,
     build() {
@@ -1643,7 +2449,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 1,
     max: 5,
     build() {
@@ -1663,7 +2469,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 4,
     max: 7,
     build() {
@@ -1680,7 +2486,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 4,
     max: 7,
     build() {
@@ -1696,7 +2502,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit9",
     min: 4,
     max: 8,
     build() {
@@ -1712,7 +2518,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit1",
     min: 5,
     max: 9,
     build() {
@@ -1720,7 +2526,7 @@ const generators = [
       const b = Math.floor(rand(2, 7));
       const correct = fraction(a, b);
       return makeQuestion(
-        "L'Hopital",
+        "Trig Limits",
         5,
         [textPart("Evaluate "), mathPart(limitExpression("x\\to0", `\\frac{\\sin(${a}x)}{\\sin(${b}x)}`)), textPart(".")],
         correct,
@@ -1729,7 +2535,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 5,
     max: 9,
     build() {
@@ -1745,7 +2551,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit9",
     min: 5,
     max: 10,
     build() {
@@ -1762,7 +2568,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit5",
     min: 2,
     max: 5,
     build() {
@@ -1780,7 +2586,7 @@ const generators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit3",
     min: 4,
     max: 8,
     build() {
@@ -1796,7 +2602,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 1,
     max: 4,
     build() {
@@ -1813,7 +2619,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 3,
     max: 7,
     build() {
@@ -1829,7 +2635,7 @@ const generators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 4,
     max: 9,
     build() {
@@ -1843,7 +2649,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 2,
     max: 6,
     build() {
@@ -1858,7 +2664,7 @@ const generators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 3,
     max: 7,
     build() {
@@ -1870,12 +2676,493 @@ const generators = [
         [textChoice("absolutely convergent"), textChoice("divergent"), textChoice("geometric"), textChoice("telescoping")]
       );
     }
+  },
+  {
+    category: "unit1",
+    min: 1,
+    max: 4,
+    build() {
+      const a = Math.floor(rand(2, 8));
+      return makeQuestion(
+        "Limits",
+        2,
+        [textPart("Evaluate "), mathPart(limitExpression("x\\to0", `\\frac{\\sin(${a}x)}{x}`)), textPart(".")],
+        `${a}`,
+        ["0", "1", `${a * a}`, fraction(1, a)]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 1,
+    max: 4,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      const b = Math.floor(rand(1, 8));
+      const t = Math.floor(rand(1, 5));
+      const correct = 2 * a * t + b;
+      return makeQuestion(
+        "Contextual Rates",
+        2,
+        [textPart("A particle has position "), mathPart(`s(t)=${a}t^2+${b}t`), textPart(". What is its velocity at "), mathPart(`t=${t}`), textPart("?")],
+        `${correct}`,
+        [`${a * t * t + b * t}`, `${2 * a + b}`, `${correct + a}`, `${correct - b}`]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 3,
+    max: 6,
+    build() {
+      const r = Math.floor(rand(2, 8));
+      const rate = Math.floor(rand(1, 5));
+      const correct = `${2 * r * rate}\\pi`;
+      return makeQuestion(
+        "Related Rates",
+        3,
+        [textPart("For a circle, "), mathPart("A=\\pi r^2"), textPart(". If "), mathPart(`r=${r}`), textPart(" and "), mathPart(`\\frac{dr}{dt}=${rate}`), textPart(", find "), mathPart("\\frac{dA}{dt}"), textPart(".")],
+        correct,
+        [`${r * rate}\\pi`, `${2 * r}\\pi`, `${r * r * rate}\\pi`, `${rate}\\pi`]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 2,
+    max: 6,
+    build() {
+      const a = Math.floor(rand(-5, -1));
+      const b = Math.floor(rand(1, 6));
+      const leftFactor = `(x+${Math.abs(a)})`;
+      const rightFactor = `(x-${b})`;
+      return makeQuestion(
+        "Extrema",
+        3,
+        [textPart("If "), mathPart(`f'(x)=${leftFactor}${rightFactor}`), textPart(" with "), mathPart(`${a}<${b}`), textPart(", where does "), mathPart("f"), textPart(" have a local maximum?")],
+        `${a}`,
+        [`${b}`, "0", textChoice("no local maximum"), `${a + b}`]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 1,
+    max: 5,
+    build() {
+      const k = Math.floor(rand(2, 5));
+      const y0 = Math.floor(rand(1, 5));
+      return makeQuestion(
+        "Differential Equations",
+        3,
+        [textPart("Solve "), mathPart(`\\frac{dy}{dx}=${k}y`), textPart(" with "), mathPart(`y(0)=${y0}`), textPart(". What is "), mathPart("y(1)"), textPart("?")],
+        `${y0}e^${k}`,
+        [`${k}e^${y0}`, `${y0 + k}e`, `${y0}e`, `${k * y0}`]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 3,
+    max: 7,
+    build() {
+      const k = Math.floor(rand(2, 6));
+      return makeQuestion(
+        "Separable Equations",
+        4,
+        [textPart("A solution to "), mathPart(`\\frac{dy}{dx}=${k}x y`), textPart(" has what general form?")],
+        `Ce^{${fraction(k, 2)}x^2}`,
+        [`Ce^{${k}x}`, `C+${fraction(k, 2)}x^2`, `${k}xy+C`, `Ce^{${k}x^2}`]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 1,
+    max: 5,
+    build() {
+      return makeQuestion(
+        "Area Between Curves",
+        3,
+        [textPart("Find the area between "), mathPart("y=x"), textPart(" and "), mathPart("y=x^2"), textPart(" on "), mathPart("[0,1]"), textPart(".")],
+        fraction(1, 6),
+        [fraction(1, 2), fraction(1, 3), fraction(2, 3), "1"]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 4,
+    max: 8,
+    build() {
+      const a = Math.floor(rand(2, 6));
+      return makeQuestion(
+        "Volumes",
+        4,
+        [textPart("Using disks, the volume from rotating "), mathPart(`y=${a}x`), textPart(" on "), mathPart("[0,1]"), textPart(" about the x-axis is what?")],
+        piMultiple(a * a, 3),
+        [piMultiple(a, 3), piMultiple(a * a, 2), piMultiple(a, 2), piMultiple(a * a, 1)]
+      );
+    }
   }
 ];
 
+generators.push(...[
+  {
+    category: "unit1",
+    min: 1,
+    max: 4,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Limits",
+        2,
+        [textPart("Evaluate "), mathPart(limitExpression(`x\\to${a}`, `\\frac{x^2-${a * a}}{x-${a}}`)), textPart(".")],
+        `${2 * a}`,
+        [`${a}`, `${a * a}`, "0", textChoice("does not exist")]
+      );
+    }
+  },
+  {
+    category: "unit1",
+    min: 2,
+    max: 5,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      const b = Math.floor(rand(1, 8));
+      const c = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Limits at Infinity",
+        3,
+        [textPart("Evaluate "), mathPart(limitExpression("x\\to\\infty", `\\frac{${a}x+${b}}{${c}x-${b}}`)), textPart(".")],
+        fraction(a, c),
+        [fraction(c, a), "0", textChoice("does not exist"), `${a - c}`]
+      );
+    }
+  },
+  {
+    category: "unit1",
+    min: 2,
+    max: 5,
+    build() {
+      return makeQuestion(
+        "Continuity",
+        3,
+        [textPart("For "), mathPart("f(x)=\\frac{x^2-9}{x-3}"), textPart(", what value should "), mathPart("f(3)"), textPart(" have to make "), mathPart("f"), textPart(" continuous?")],
+        "6",
+        ["3", "9", "0", textChoice("impossible")]
+      );
+    }
+  },
+  {
+    category: "unit2",
+    min: 1,
+    max: 4,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      const x = Math.floor(rand(1, 5));
+      const correct = 3 * a * x * x;
+      return makeQuestion(
+        "Derivative Values",
+        2,
+        [textPart("If "), mathPart(`f(x)=${a}x^3`), textPart(", find "), mathPart(`f'(${x})`), textPart(".")],
+        `${correct}`,
+        [`${a * x * x}`, `${3 * a * x}`, `${correct + a}`, `${correct - x}`]
+      );
+    }
+  },
+  {
+    category: "unit2",
+    min: 2,
+    max: 5,
+    build() {
+      const n = Math.floor(rand(2, 6));
+      return makeQuestion(
+        "Derivative Definition",
+        3,
+        [textPart("Simplify "), mathPart(limitExpression("h\\to0", `\\frac{(x+h)^${n}-x^${n}}{h}`)), textPart(" for "), mathPart(`n=${n}`), textPart(".")],
+        `${n}x^${n - 1}`,
+        [`x^${n - 1}`, `${n}x^${n}`, `${n - 1}x^${n}`, textChoice("0")]
+      );
+    }
+  },
+  {
+    category: "unit2",
+    min: 2,
+    max: 5,
+    build() {
+      const k = Math.floor(rand(2, 8));
+      return makeQuestion(
+        "Tangent Lines",
+        3,
+        [textPart("What is the slope of the tangent to "), mathPart(`y=${k}\\ln(x)`), textPart(" at "), mathPart("x=1"), textPart("?")],
+        `${k}`,
+        ["1", "0", `${2 * k}`, fraction(1, k)]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 2,
+    max: 6,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Quotient Rule",
+        3,
+        [textPart("Differentiate "), mathPart(`\\frac{x^2+${a}}{x}`), textPart(".")],
+        `1-\\frac{${a}}{x^2}`,
+        [`1+\\frac{${a}}{x^2}`, `2x-${a}`, `\\frac{x^2-${a}}{x^2}`, `x+${a}`]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 3,
+    max: 7,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Log Differentiation",
+        4,
+        [textPart("Differentiate "), mathPart(`\\ln(${a}x^2+1)`), textPart(".")],
+        `\\frac{${2 * a}x}{${a}x^2+1}`,
+        [`\\frac{${a}}{${a}x^2+1}`, `\\frac{2x}{${a}x^2+1}`, `${2 * a}x`, `\\frac{${2 * a}x}{${a}x+1}`]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 4,
+    max: 8,
+    build() {
+      const m = Math.floor(rand(2, 8));
+      return makeQuestion(
+        "Inverse Functions",
+        4,
+        [textPart("If "), mathPart("f(a)=b"), textPart(" and "), mathPart(`f'(a)=${m}`), textPart(", find "), mathPart("(f^{-1})'(b)"), textPart(".")],
+        fraction(1, m),
+        [`${m}`, `-${m}`, "1", "0"]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 1,
+    max: 5,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      const b = Math.floor(rand(1, 8));
+      const t = Math.floor(rand(1, 5));
+      const correct = 2 * a;
+      return makeQuestion(
+        "Particle Motion",
+        3,
+        [textPart("A particle has velocity "), mathPart(`v(t)=${a}t^2+${b}`), textPart(". What is its acceleration at "), mathPart(`t=${t}`), textPart("?")],
+        `${2 * a * t}`,
+        [`${correct}`, `${a * t * t + b}`, `${2 * a * t + b}`, `${b}`]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 2,
+    max: 6,
+    build() {
+      const gallons = Math.floor(rand(2, 8));
+      return makeQuestion(
+        "Derivative Units",
+        2,
+        [textPart("If "), mathPart(`W'(t)=${gallons}`), textPart(" gallons per minute, what does "), mathPart("W'(t)"), textPart(" represent?")],
+        textChoice("rate of change of water"),
+        [textChoice("total water"), textChoice("average water amount"), textChoice("time elapsed"), textChoice("maximum water")]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 2,
+    max: 6,
+    build() {
+      const c = Math.floor(rand(1, 6));
+      return makeQuestion(
+        "Concavity",
+        3,
+        [textPart("If "), mathPart(`f''(x)=x-${c}`), textPart(", on what interval is "), mathPart("f"), textPart(" concave up?")],
+        textChoice(`x>${c}`),
+        [textChoice(`x<${c}`), textChoice(`x=${c}`), textChoice("all real x"), textChoice("no interval")]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 3,
+    max: 7,
+    build() {
+      const a = Math.floor(rand(2, 8));
+      return makeQuestion(
+        "Mean Value Theorem",
+        3,
+        [textPart("For "), mathPart(`f(x)=x^2`), textPart(" on "), mathPart(`[0,${a}]`), textPart(", the MVT guarantees "), mathPart(`f'(c)`), textPart(" equals what?")],
+        `${a}`,
+        [`${2 * a}`, fraction(a, 2), "0", `${a * a}`]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 2,
+    max: 6,
+    build() {
+      const a = Math.floor(rand(1, 8));
+      return makeQuestion(
+        "FTC",
+        3,
+        [textPart("Find "), mathPart(`\\frac{d}{dx}\\int_0^x(t^2+${a})dt`), textPart(".")],
+        `x^2+${a}`,
+        [`2x+${a}`, `\\frac{x^3}{3}+${a}x`, `t^2+${a}`, `${a}`]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 2,
+    max: 6,
+    build() {
+      const a = Math.floor(rand(2, 9));
+      return makeQuestion(
+        "Average Value",
+        3,
+        [textPart("Find the average value of "), mathPart("f(x)=x"), textPart(" on "), mathPart(`[0,${a}]`), textPart(".")],
+        fraction(a, 2),
+        [`${a}`, fraction(1, a), fraction(a * a, 2), "0"]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 1,
+    max: 5,
+    build() {
+      const y0 = Math.floor(rand(1, 6));
+      return makeQuestion(
+        "Initial Value Problems",
+        3,
+        [textPart("Solve "), mathPart("\\frac{dy}{dx}=x"), textPart(" with "), mathPart(`y(0)=${y0}`), textPart(". What is "), mathPart("y(2)"), textPart("?")],
+        `${y0 + 2}`,
+        [`${y0}`, `${y0 + 4}`, "2", `${2 * y0}`]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 3,
+    max: 7,
+    build() {
+      const y0 = Math.floor(rand(1, 5));
+      const h = fraction(1, 2);
+      return makeQuestion(
+        "Euler's Method",
+        4,
+        [textPart("Use one Euler step with "), mathPart("h=\\frac12"), textPart(" for "), mathPart("\\frac{dy}{dx}=x+y"), textPart(" from "), mathPart(`(0,${y0})`), textPart(". What is the next "), mathPart("y"), textPart("?")],
+        fraction(3 * y0, 2),
+        [`${y0}`, `${y0 + 1}`, fraction(y0, 2), `${2 * y0}`]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 2,
+    max: 6,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Net Change",
+        3,
+        [textPart("If "), mathPart(`v(t)=${a}t`), textPart(", find total displacement on "), mathPart("[0,2]"), textPart(".")],
+        `${2 * a}`,
+        [`${a}`, `${4 * a}`, `${a + 2}`, fraction(a, 2)]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 4,
+    max: 8,
+    build() {
+      return makeQuestion(
+        "Disk Method",
+        4,
+        [textPart("Rotate "), mathPart("y=\\sqrt{x}"), textPart(" on "), mathPart("[0,1]"), textPart(" about the x-axis. What is the volume?")],
+        "\\frac{\\pi}{2}",
+        ["\\pi", "\\frac{\\pi}{3}", "2\\pi", "1"]
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 2,
+    max: 6,
+    build() {
+      return makeQuestion(
+        "Parametric Slope",
+        3,
+        [textPart("For "), mathPart("x=t^2"), textPart(" and "), mathPart("y=t^3"), textPart(", find "), mathPart("\\frac{dy}{dx}"), textPart(".")],
+        "\\frac{3t}{2}",
+        ["3t^2", "2t", "\\frac{2}{3t}", "\\frac{2t}{3}"]
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 3,
+    max: 7,
+    build() {
+      const a = Math.floor(rand(2, 7));
+      const b = Math.floor(rand(2, 7));
+      return makeQuestion(
+        "Vector Speed",
+        3,
+        [textPart("If "), mathPart(`\\frac{dx}{dt}=${a}`), textPart(" and "), mathPart(`\\frac{dy}{dt}=${b}`), textPart(", what is speed?")],
+        `\\sqrt{${a * a + b * b}}`,
+        [`${a + b}`, `\\sqrt{${a + b}}`, `${a * b}`, `${a * a + b * b}`]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 2,
+    max: 6,
+    build() {
+      return makeQuestion(
+        "Divergence Test",
+        3,
+        [textPart("Does "), mathPart("\\sum_{n=1}^{\\infty}\\frac{n}{n+1}"), textPart(" converge or diverge?")],
+        textChoice("diverges"),
+        [textChoice("converges"), textChoice("equals 1"), textChoice("absolutely converges"), textChoice("alternates")]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 4,
+    max: 8,
+    build() {
+      const n = Math.floor(rand(3, 8));
+      return makeQuestion(
+        "Alternating Error",
+        4,
+        [textPart("For an alternating series with decreasing terms "), mathPart("b_n=\\frac1n"), textPart(", after "), mathPart(`${n}`), textPart(" terms, the error is less than what?")],
+        fraction(1, n + 1),
+        [fraction(1, n), fraction(1, n - 1), `${n + 1}`, "0"]
+      );
+    }
+  }
+]);
+
 const frqGenerators = [
   {
-    category: "derivative",
+    category: "unit2",
     min: 1,
     max: 3,
     build() {
@@ -1892,7 +3179,7 @@ const frqGenerators = [
     }
   },
   {
-    category: "integral",
+    category: "unit6",
     min: 1,
     max: 4,
     build() {
@@ -1908,7 +3195,7 @@ const frqGenerators = [
     }
   },
   {
-    category: "series",
+    category: "unit10",
     min: 2,
     max: 5,
     build() {
@@ -1928,7 +3215,7 @@ const frqGenerators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit3",
     min: 3,
     max: 6,
     build() {
@@ -1945,7 +3232,7 @@ const frqGenerators = [
     }
   },
   {
-    category: "derivative",
+    category: "unit1",
     min: 4,
     max: 8,
     build() {
@@ -1962,7 +3249,7 @@ const frqGenerators = [
     }
   },
   {
-    category: "integral",
+    category: "unit9",
     min: 5,
     max: 10,
     build() {
@@ -1979,16 +3266,614 @@ const frqGenerators = [
   }
 ];
 
+generators.push(...[
+  {
+    category: "unit1",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 8);
+      return makeQuestion(
+        "Limit Algebra",
+        3,
+        [textPart("Evaluate "), mathPart(limitExpression(`x\\to${a}`, `\\frac{x^2-${a * a}}{x-${a}}`)), textPart(".")],
+        `${2 * a}`,
+        [`${a}`, `${a * a}`, "0", textChoice("does not exist")]
+      );
+    }
+  },
+  {
+    category: "unit1",
+    min: 3,
+    max: 7,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "Continuity",
+        4,
+        [textPart("Find "), mathPart("c"), textPart(" so "), mathPart(`f(x)=\\frac{x^2-${a * a}}{x-${a}}`), textPart(" with "), mathPart(`f(${a})=c`), textPart(" is continuous.")],
+        `${2 * a}`,
+        [`${a}`, `${a * a}`, "0", textChoice("no such c")]
+      );
+    }
+  },
+  {
+    category: "unit1",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      const b = randInt(1, 5);
+      return makeQuestion(
+        "Trig Limits",
+        5,
+        [textPart("Evaluate "), mathPart(limitExpression("x\\to0", `\\frac{\\sin(${a}x)}{${b}x}`)), textPart(".")],
+        fraction(a, b),
+        [fraction(b, a), `${a * b}`, "0", "1"]
+      );
+    }
+  },
+  {
+    category: "unit2",
+    min: 2,
+    max: 5,
+    build() {
+      const a = randInt(2, 7);
+      const x = randInt(1, 5);
+      return makeQuestion(
+        "Tangent Line",
+        3,
+        [textPart("For "), mathPart(`f(x)=${a}x^2`), textPart(", the tangent slope at "), mathPart(`x=${x}`), textPart(" is what?")],
+        `${2 * a * x}`,
+        [`${a * x}`, `${a * x * x}`, `${2 * a}`, `${2 * x}`]
+      );
+    }
+  },
+  {
+    category: "unit2",
+    min: 3,
+    max: 6,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "Derivative Definition",
+        4,
+        [textPart("The limit "), mathPart(`\\lim_{h\\to0}\\frac{(${a}+h)^3-${a}^3}{h}`), textPart(" equals what?")],
+        `${3 * a * a}`,
+        [`${a * a}`, `${3 * a}`, `${a * a * a}`, "0"]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 6);
+      const b = randInt(2, 5);
+      return makeQuestion(
+        "Product Rule",
+        3,
+        [textPart("Differentiate "), mathPart(`x^${a}\\sin(${b}x)`), textPart(".")],
+        `${a}x^${a - 1}\\sin(${b}x)+${b}x^${a}\\cos(${b}x)`,
+        [`${a}x^${a - 1}\\cos(${b}x)`, `${b}x^${a}\\sin(${b}x)`, `${a * b}x^${a - 1}\\cos(${b}x)`, `x^${a}\\cos(${b}x)`]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 3,
+    max: 7,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "Implicit Differentiation",
+        4,
+        [textPart("For "), mathPart(`x^2+y^2=${a * a}`), textPart(", find "), mathPart("\\frac{dy}{dx}"), textPart(".")],
+        "-\\frac{x}{y}",
+        ["\\frac{x}{y}", "-\\frac{y}{x}", "\\frac{y}{x}", "-1"]
+      );
+    }
+  },
+  {
+    category: "unit3",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Inverse Derivatives",
+        5,
+        [textPart("If "), mathPart(`f(${a})=${a + 1}`), textPart(" and "), mathPart(`f'(${a})=${a + 2}`), textPart(", find "), mathPart(`(f^{-1})'(${a + 1})`), textPart(".")],
+        fraction(1, a + 2),
+        [`${a + 2}`, fraction(1, a), `${a + 1}`, "0"]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 7);
+      const b = randInt(1, 6);
+      const t = randInt(1, 4);
+      return makeQuestion(
+        "Particle Motion",
+        3,
+        [textPart("For "), mathPart(`s(t)=${a}t^3-${b}t`), textPart(", acceleration at "), mathPart(`t=${t}`), textPart(" is what?")],
+        `${6 * a * t}`,
+        [`${3 * a * t * t - b}`, `${6 * a}`, `${a * t * t * t - b * t}`, `${3 * a * t}`]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 3,
+    max: 7,
+    build() {
+      const r = randInt(2, 8);
+      const dr = randInt(1, 5);
+      return makeQuestion(
+        "Related Rates",
+        4,
+        [textPart("For "), mathPart("V=\\frac{4}{3}\\pi r^3"), textPart(", if "), mathPart(`r=${r}`), textPart(" and "), mathPart(`\\frac{dr}{dt}=${dr}`), textPart(", find "), mathPart("\\frac{dV}{dt}"), textPart(".")],
+        `${4 * r * r * dr}\\pi`,
+        [`${2 * r * dr}\\pi`, `${4 * r * dr}\\pi`, `${r * r * dr}\\pi`, `${4 * r * r}\\pi`]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 4,
+    max: 8,
+    build() {
+      const x = randInt(2, 6);
+      const dx = randInt(1, 4);
+      const y = randInt(2, 6);
+      const dy = randInt(1, 4);
+      return makeQuestion(
+        "Vector Speed",
+        4,
+        [textPart("If "), mathPart(`\\frac{dx}{dt}=${dx}`), textPart(" and "), mathPart(`\\frac{dy}{dt}=${dy}`), textPart(", speed at "), mathPart(`(${x},${y})`), textPart(" is what?")],
+        `\\sqrt{${dx * dx + dy * dy}}`,
+        [`${dx + dy}`, `\\sqrt{${x * x + y * y}}`, `${dx * dx + dy * dy}`, `${dx * dy}`]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(1, 5);
+      const b = randInt(a + 2, a + 7);
+      return makeQuestion(
+        "Increasing Intervals",
+        3,
+        [textPart("If "), mathPart(`f'(x)=(x-${a})(x-${b})`), textPart(", where is "), mathPart("f"), textPart(" increasing?")],
+        textChoice(`x<${a} or x>${b}`),
+        [textChoice(`${a}<x<${b}`), textChoice(`x>${a}`), textChoice(`x<${b}`), textChoice("all real x")]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 3,
+    max: 7,
+    build() {
+      const c = randInt(1, 6);
+      return makeQuestion(
+        "Inflection Points",
+        4,
+        [textPart("If "), mathPart(`f''(x)=2(x-${c})`), textPart(", the possible inflection point is at what "), mathPart("x"), textPart("?")],
+        `${c}`,
+        [`${-c}`, "0", `${2 * c}`, textChoice("none")]
+      );
+    }
+  },
+  {
+    category: "unit5",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "Linearization",
+        4,
+        [textPart("Using "), mathPart("f(x)=\\sqrt{x}"), textPart(" at "), mathPart(`x=${a * a}`), textPart(", approximate "), mathPart(`\\sqrt{${a * a + 1}}`), textPart(".")],
+        `${a}+\\frac{1}{${2 * a}}`,
+        [`${a}+\\frac{1}{${a}}`, `${a + 1}`, `${a}-\\frac{1}{${2 * a}}`, fraction(1, 2 * a)]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "FTC",
+        3,
+        [textPart("Find "), mathPart(`\\frac{d}{dx}\\int_{${a}}^x \\cos(t^2)dt`), textPart(".")],
+        "\\cos(x^2)",
+        [`2x\\cos(x^2)`, `\\cos(${a}^2)`, `x\\cos(x^2)`, "\\sin(x^2)"]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 3,
+    max: 7,
+    build() {
+      const a = randInt(2, 7);
+      const b = randInt(1, 5);
+      return makeQuestion(
+        "Integration By Parts",
+        5,
+        [textPart("An antiderivative of "), mathPart(`${a}x e^x`), textPart(" is what?")],
+        `${a}e^x(x-1)`,
+        [`${a}xe^x`, `${a}e^x`, `${a}e^x(x+1)`, `${b}e^x(x-1)`]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Average Value",
+        5,
+        [textPart("Find the average value of "), mathPart("f(x)=x^2"), textPart(" on "), mathPart(`[0,${a}]`), textPart(".")],
+        fraction(a * a, 3),
+        [fraction(a, 2), fraction(a * a, 2), `${a * a}`, fraction(a, 3)]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 2,
+    max: 6,
+    build() {
+      const k = randInt(2, 5);
+      const y0 = randInt(1, 5);
+      return makeQuestion(
+        "Separable Equations",
+        4,
+        [textPart("Solve "), mathPart(`\\frac{dy}{dx}=${k}x`), textPart(" with "), mathPart(`y(0)=${y0}`), textPart(". Find "), mathPart("y(2)"), textPart(".")],
+        `${2 * k + y0}`,
+        [`${k + y0}`, `${4 * k + y0}`, `${y0}`, `${2 + y0}`]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 3,
+    max: 7,
+    build() {
+      const y0 = randInt(1, 4);
+      return makeQuestion(
+        "Euler's Method",
+        5,
+        [textPart("Use Euler with "), mathPart("h=1"), textPart(" for "), mathPart("\\frac{dy}{dx}=x+y"), textPart(" from "), mathPart(`(0,${y0})`), textPart(". What is next "), mathPart("y"), textPart("?")],
+        `${2 * y0}`,
+        [`${y0 + 1}`, `${y0}`, `${2 * y0 + 1}`, `${y0 * y0}`]
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 5,
+    max: 9,
+    build() {
+      const k = randInt(2, 6);
+      return makeQuestion(
+        "Slope Fields",
+        6,
+        [textPart("For "), mathPart("\\frac{dy}{dx}=x-y"), textPart(", the slope at "), mathPart(`(${k},1)`), textPart(" is what?")],
+        `${k - 1}`,
+        [`${k + 1}`, `${1 - k}`, `${k}`, "1"]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Area Between Curves",
+        4,
+        [textPart("Area between "), mathPart(`y=${a}x`), textPart(" and "), mathPart("y=x^2"), textPart(" from "), mathPart("0"), textPart(" to "), mathPart(`${a}`), textPart(" is what?")],
+        fraction(a * a * a, 6),
+        [fraction(a * a, 2), fraction(a * a * a, 3), `${a}`, fraction(a * a * a, 2)]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 5);
+      return makeQuestion(
+        "Washer Method",
+        5,
+        [textPart("Rotate region between "), mathPart(`y=${a}`), textPart(" and "), mathPart("y=x"), textPart(" on "), mathPart(`[0,${a}]`), textPart(" about x-axis. Volume?")],
+        piMultiple(2 * a * a * a, 3),
+        [piMultiple(a * a * a, 3), piMultiple(a * a, 2), piMultiple(a * a * a, 1), piMultiple(a, 1)]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 5,
+    max: 9,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Cross Sections",
+        6,
+        [textPart("Square cross sections have side "), mathPart(`${a}x`), textPart(" on "), mathPart("[0,1]"), textPart(". Volume is what?")],
+        fraction(a * a, 3),
+        [fraction(a, 2), fraction(a * a, 2), `${a * a}`, `\\pi\\frac{${a * a}}{3}`]
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 2,
+    max: 6,
+    build() {
+      const a = randInt(2, 7);
+      return makeQuestion(
+        "Parametric Derivatives",
+        4,
+        [textPart("For "), mathPart(`x=t^2+1`), textPart(" and "), mathPart(`y=${a}t^3`), textPart(", find "), mathPart("\\frac{dy}{dx}"), textPart(".")],
+        `${fraction(3 * a, 2)}t`,
+        [`${3 * a}t^2`, `${2}t`, `${fraction(2, 3 * a)}t`, `${3 * a}t`]
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(1, 5);
+      return makeQuestion(
+        "Polar Slope",
+        6,
+        [textPart("For "), mathPart(`r=${a}`), textPart(", at "), mathPart("\\theta=\\frac{\\pi}{4}"), textPart(", "), mathPart("\\frac{dy}{dx}"), textPart(" equals what?")],
+        "1",
+        ["0", "-1", textChoice("undefined"), `${a}`]
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 5,
+    max: 10,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Polar Area",
+        6,
+        [textPart("Area inside "), mathPart(`r=${a}\\cos(\\theta)`), textPart(" is what?")],
+        piMultiple(a * a, 4),
+        [piMultiple(a * a, 2), piMultiple(a, 2), piMultiple(a * a, 1), fraction(a * a, 4)]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 2,
+    max: 6,
+    build() {
+      const r = randInt(2, 6);
+      return makeQuestion(
+        "Ratio Test",
+        4,
+        [textPart("For "), mathPart(`\\sum_{n=1}^{\\infty}\\frac{x^n}{n${r}^n}`), textPart(", radius of convergence is what?")],
+        `${r}`,
+        [fraction(1, r), `${r * r}`, "1", textChoice("infinite")]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 3,
+    max: 7,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Alternating Series Error",
+        4,
+        [textPart("For alternating terms with "), mathPart(`b_{${a}}=\\frac{1}{${a}}`), textPart(", error after "), mathPart(`${a - 1}`), textPart(" terms is at most what?")],
+        fraction(1, a),
+        [fraction(1, a - 1), fraction(1, a + 1), `${a}`, textChoice("0")]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 4,
+    max: 8,
+    build() {
+      const n = randInt(2, 5);
+      return makeQuestion(
+        "Taylor Polynomials",
+        5,
+        [textPart("In the Maclaurin series for "), mathPart("e^x"), textPart(", coefficient of "), mathPart(`x^${n}`), textPart(" is what?")],
+        fraction(1, factorial(n)),
+        [`${n}`, fraction(1, n), `${factorial(n)}`, "0"]
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 5,
+    max: 10,
+    build() {
+      const a = randInt(2, 6);
+      return makeQuestion(
+        "Interval Of Convergence",
+        7,
+        [textPart("The series "), mathPart(`\\sum_{n=1}^{\\infty}\\frac{(x-${a})^n}{n}`), textPart(" has radius what?")],
+        "1",
+        [`${a}`, `${a + 1}`, textChoice("infinite"), fraction(1, a)]
+      );
+    }
+  }
+]);
+
+frqGenerators.push(...[
+  {
+    category: "unit3",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      return makeFRQ(
+        "FRQ Implicit",
+        5,
+        [textPart("For "), mathPart("x^2+y^2=25"), textPart(", type "), mathPart("\\frac{dy}{dx}"), textPart(".")],
+        "-\\frac{x}{y}",
+        ["-x/y"]
+      );
+    }
+  },
+  {
+    category: "unit4",
+    min: 3,
+    max: 7,
+    build() {
+      const r = randInt(2, 6);
+      const dr = randInt(1, 4);
+      const correct = 2 * r * dr;
+      return makeFRQ(
+        "FRQ Related Rates",
+        4,
+        [textPart("For "), mathPart("A=\\pi r^2"), textPart(", "), mathPart(`r=${r}`), textPart(" and "), mathPart(`\\frac{dr}{dt}=${dr}`), textPart(". Type the coefficient of "), mathPart("\\pi"), textPart(" in "), mathPart("\\frac{dA}{dt}"), textPart(".")],
+        `${correct}`,
+        [`${correct}.0`]
+      );
+    }
+  },
+  {
+    category: "unit6",
+    min: 3,
+    max: 7,
+    build() {
+      const a = randInt(2, 7);
+      return makeFRQ(
+        "FRQ FTC",
+        4,
+        [textPart("Type "), mathPart(`\\frac{d}{dx}\\int_0^x(t^2+${a})dt`), textPart(".")],
+        `x^2+${a}`,
+        []
+      );
+    }
+  },
+  {
+    category: "unit7",
+    min: 3,
+    max: 7,
+    build() {
+      const y0 = randInt(1, 5);
+      return makeFRQ(
+        "FRQ Euler",
+        5,
+        [textPart("Euler step: "), mathPart("h=1"), textPart(", "), mathPart("\\frac{dy}{dx}=x+y"), textPart(", start "), mathPart(`(0,${y0})`), textPart(". Type next "), mathPart("y"), textPart(".")],
+        `${2 * y0}`,
+        [`${2 * y0}.0`]
+      );
+    }
+  },
+  {
+    category: "unit8",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      return makeFRQ(
+        "FRQ Area",
+        5,
+        [textPart("Type the area between "), mathPart(`y=${a}x`), textPart(" and "), mathPart("y=x^2"), textPart(" on "), mathPart(`[0,${a}]`), textPart(".")],
+        fraction(a * a * a, 6),
+        []
+      );
+    }
+  },
+  {
+    category: "unit9",
+    min: 4,
+    max: 8,
+    build() {
+      const a = randInt(2, 6);
+      return makeFRQ(
+        "FRQ Parametric",
+        5,
+        [textPart("For "), mathPart("x=t^2"), textPart(" and "), mathPart(`y=${a}t^3`), textPart(", type "), mathPart("\\frac{dy}{dx}"), textPart(".")],
+        `${fraction(3 * a, 2)}t`,
+        []
+      );
+    }
+  },
+  {
+    category: "unit10",
+    min: 4,
+    max: 8,
+    build() {
+      const n = randInt(2, 5);
+      return makeFRQ(
+        "FRQ Taylor",
+        5,
+        [textPart("For "), mathPart("e^x"), textPart(", type the coefficient of "), mathPart(`x^${n}`), textPart(" in the Maclaurin series.")],
+        fraction(1, factorial(n)),
+        []
+      );
+    }
+  }
+]);
+
 function factorial(n) {
   let product = 1;
   for (let value = 2; value <= n; value += 1) product *= value;
   return product;
 }
 
+function getSelectedModes() {
+  const selected = Array.isArray(state.modes)
+    ? state.modes.filter((mode) => modeLabels[mode])
+    : [];
+
+  if (!selected.length) {
+    const fallback = modeLabels[state.mode] ? state.mode : "unit1";
+    state.modes = [fallback];
+    state.mode = fallback;
+    return state.modes;
+  }
+
+  state.modes = modeOrder.filter((mode) => selected.includes(mode));
+  state.mode = state.modes[0];
+  return state.modes;
+}
+
+function formatSelectedModes(modes = getSelectedModes()) {
+  const unitNumbers = modes.map((mode) => mode.replace("unit", ""));
+  if (unitNumbers.length === 1) return modeLabels[modes[0]] || "Unit 1";
+  if (unitNumbers.length === modeOrder.length) return "Units 1-10";
+  return `Units ${unitNumbers.join(", ")}`;
+}
+
 function generatorsForMode(source) {
-  return state.mode === "all"
-    ? source
-    : source.filter((generator) => generator.category === state.mode);
+  const selectedModes = new Set(getSelectedModes());
+  return source.filter((generator) => selectedModes.has(generator.category));
 }
 
 function availableGenerators(source = generators) {
@@ -1997,7 +3882,7 @@ function availableGenerators(source = generators) {
   const currentBand = modePool.filter((generator) => difficulty >= generator.min && difficulty <= generator.max);
   if (currentBand.length) return currentBand;
   const unlocked = modePool.filter((generator) => difficulty >= generator.min);
-  return unlocked.length ? unlocked : modePool;
+  return unlocked.length ? unlocked : (modePool.length ? modePool : source);
 }
 
 function shouldAskFRQ() {
@@ -2134,8 +4019,265 @@ function renderStats() {
   elements.score.textContent = state.score.toLocaleString();
   elements.streak.textContent = state.streak;
   elements.level.textContent = state.level;
-  elements.modeLabel.textContent = modeLabels[state.mode] || modeLabels.all;
+  elements.modeLabel.textContent = formatSelectedModes();
   elements.timeBar.style.transform = `scaleX(${clamp(state.time / state.maxTime, 0, 1)})`;
+}
+
+function getModeDisplayName(mode) {
+  const selectedButton = elements.modeButtons.find((button) => button.dataset.mode === mode);
+  const labelNode = selectedButton ? selectedButton.querySelector("strong") : null;
+  const label = labelNode && labelNode.textContent ? labelNode.textContent.trim() : "";
+  return label || modeLabels[mode] || modeLabels.unit1;
+}
+
+function syncModeControls() {
+  const selectedModes = getSelectedModes();
+  elements.modeButtons.forEach((button) => {
+    const active = selectedModes.includes(button.dataset.mode);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  if (elements.selectedModeLabel) {
+    elements.selectedModeLabel.textContent = `Mode: ${formatSelectedModes(selectedModes)}`;
+  }
+}
+
+function setSelectedMode(mode) {
+  if (!modeLabels[mode]) return;
+  const selected = new Set(getSelectedModes());
+  if (selected.has(mode)) {
+    if (selected.size > 1) selected.delete(mode);
+  } else {
+    selected.add(mode);
+  }
+  state.modes = modeOrder.filter((modeKey) => selected.has(modeKey));
+  state.mode = state.modes[0] || "unit1";
+  syncModeControls();
+  renderStats();
+}
+
+function setModePanelOpen(open) {
+  if (!elements.modeGrid || !elements.modeSettings) return;
+  elements.modeGrid.hidden = !open;
+  elements.modeSettings.classList.toggle("active", open);
+  elements.modeSettings.setAttribute("aria-expanded", String(open));
+}
+
+function initLandingOrbitMenu() {
+  const menu = elements.landingOrbitMenu;
+  const wheel = elements.landingOrbitWheel;
+  const items = elements.landingOrbitItems;
+  if (!menu || !wheel || !items.length) return;
+
+  const cards = items.map((item) => item.querySelector(".landing-orbit-card"));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const pointer = { x: 0, y: 0 };
+  const smoothPointer = { x: 0, y: 0 };
+  const mouseDrag = { active: false, dragging: false, startX: 0, lastX: 0 };
+  const touchDrag = {
+    active: false,
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastClientX: 0,
+    lastClientY: 0,
+    lastTime: 0,
+    lastDelta: 0,
+    lockedDirection: null
+  };
+  let mobile = window.innerWidth < 716;
+  let angle = 0;
+  let velocity = 0;
+  let suppressClick = false;
+  let lastFrame = performance.now();
+  let animationFrame = 0;
+
+  const settings = {
+    radius: 530,
+    baseTiltAngle: 0,
+    mouseTiltIntensity: 10,
+    touchSpeed: 0.22,
+    dragSpeed: 0.18,
+    itemBaseScale: 1,
+    mobileRadiusScale: 0.85,
+    mobileItemScale: 0.82,
+    idleSpeed: 0.05,
+    dragThreshold: 5,
+    touchLockThreshold: 14
+  };
+
+  function getRadius() {
+    if (window.innerWidth <= 480) return Math.min(window.innerWidth * 0.31, 136);
+    if (window.innerWidth <= 820) return Math.min(window.innerWidth * 0.38, 226);
+    return clamp(window.innerWidth * 0.27, 240, 455);
+  }
+
+  function updateMobileState() {
+    mobile = window.innerWidth < 716;
+  }
+
+  function startMouseDrag(event) {
+    event.preventDefault();
+    mouseDrag.active = true;
+    mouseDrag.dragging = false;
+    mouseDrag.startX = event.clientX;
+    mouseDrag.lastX = event.clientX;
+  }
+
+  function moveMouseDrag(event) {
+    if (!mouseDrag.active) return;
+    const delta = event.clientX - mouseDrag.lastX;
+    const distance = Math.abs(event.clientX - mouseDrag.startX);
+    mouseDrag.lastX = event.clientX;
+    if (!mouseDrag.dragging && distance > settings.dragThreshold) {
+      mouseDrag.dragging = true;
+      velocity = 0;
+    }
+    if (mouseDrag.dragging) angle += delta * settings.dragSpeed;
+  }
+
+  function endMouseDrag() {
+    if (mouseDrag.dragging) {
+      suppressClick = true;
+      window.setTimeout(() => {
+        suppressClick = false;
+      }, 0);
+    }
+    mouseDrag.active = false;
+    mouseDrag.dragging = false;
+  }
+
+  function startTouchDrag(event) {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    touchDrag.active = true;
+    touchDrag.dragging = false;
+    touchDrag.lockedDirection = null;
+    touchDrag.startX = touch.clientX;
+    touchDrag.startY = touch.clientY;
+    touchDrag.lastX = touch.clientX;
+    touchDrag.lastClientX = touch.clientX;
+    touchDrag.lastClientY = touch.clientY;
+    touchDrag.lastTime = performance.now();
+    touchDrag.lastDelta = 0;
+  }
+
+  function moveTouchDrag(event) {
+    if (!touchDrag.active) return;
+    const touch = event.touches[0];
+    const now = performance.now();
+    touchDrag.lastClientX = touch.clientX;
+    touchDrag.lastClientY = touch.clientY;
+    const totalX = touch.clientX - touchDrag.startX;
+    const totalY = touch.clientY - touchDrag.startY;
+    const absX = Math.abs(totalX);
+    const absY = Math.abs(totalY);
+
+    if (touchDrag.lockedDirection === null && (absX > settings.touchLockThreshold || absY > settings.touchLockThreshold)) {
+      touchDrag.lockedDirection = absX > absY ? "horizontal" : "vertical";
+      if (touchDrag.lockedDirection === "vertical") {
+        touchDrag.active = false;
+        return;
+      }
+      touchDrag.dragging = true;
+      velocity = 0;
+    }
+
+    if (!touchDrag.dragging) return;
+    event.preventDefault();
+    const delta = touch.clientX - touchDrag.lastX;
+    const elapsed = now - touchDrag.lastTime;
+    touchDrag.lastX = touch.clientX;
+    touchDrag.lastTime = now;
+    touchDrag.lastDelta = delta;
+    angle += delta * settings.touchSpeed;
+    if (elapsed > 0) {
+      const frameVelocity = (delta / elapsed) * 16.6667 * settings.touchSpeed;
+      velocity = velocity * 0.3 + frameVelocity * 0.7;
+    }
+  }
+
+  function endTouchDrag() {
+    touchDrag.active = false;
+    touchDrag.dragging = false;
+    touchDrag.lockedDirection = null;
+  }
+
+  function cancelTouchDrag() {
+    touchDrag.active = false;
+    touchDrag.dragging = false;
+    touchDrag.lockedDirection = null;
+  }
+
+  function trackMouseTilt(event) {
+    if (mobile) return;
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -((event.clientY / window.innerHeight) * 2 - 1);
+  }
+
+  function blockDraggedClick(event) {
+    if (!suppressClick) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+  }
+
+  function renderOrbit(now) {
+    const delta = Math.min((now - lastFrame) / 16.6667, 2);
+    lastFrame = now;
+    const dragging = mouseDrag.dragging || touchDrag.dragging;
+    if (!dragging && Math.abs(velocity) > 0.01) {
+      angle += velocity;
+      velocity *= 0.94 ** delta;
+    } else if (!dragging) {
+      velocity = 0;
+      if (!reducedMotion.matches) angle += settings.idleSpeed * delta;
+    }
+
+    if (mobile) {
+      smoothPointer.x = 0;
+      smoothPointer.y = 0;
+    } else {
+      const smoothing = 1 - 0.93 ** delta;
+      smoothPointer.x += (pointer.x - smoothPointer.x) * smoothing;
+      smoothPointer.y += (pointer.y - smoothPointer.y) * smoothing;
+    }
+
+    const tiltX = settings.baseTiltAngle + smoothPointer.y * settings.mouseTiltIntensity;
+    const tiltY = smoothPointer.x * settings.mouseTiltIntensity;
+    wheel.style.transform = mobile ? `rotateX(${settings.baseTiltAngle}deg)` : `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+    const radius = getRadius() * (mobile ? settings.mobileRadiusScale : 1);
+    const itemScale = settings.itemBaseScale * (mobile ? settings.mobileItemScale : 1);
+    const step = 360 / items.length;
+    const degreesToRadians = Math.PI / 180;
+
+    items.forEach((item, index) => {
+      const rotation = angle + index * step;
+      const depth = (Math.cos(rotation * degreesToRadians) + 1) * 0.5;
+      const scale = (0.6 + depth * 0.4) * itemScale;
+      item.style.transform = `translate(-50%, -50%) rotateY(${rotation}deg) translateZ(${radius}px)`;
+      item.style.zIndex = String(Math.round(depth * 1000));
+      if (cards[index]) cards[index].style.transform = `scale(${scale})`;
+    });
+
+    animationFrame = window.requestAnimationFrame(renderOrbit);
+  }
+
+  window.addEventListener("resize", updateMobileState);
+  window.addEventListener("mousemove", trackMouseTilt, { passive: true });
+  menu.addEventListener("mousedown", startMouseDrag);
+  window.addEventListener("mousemove", moveMouseDrag);
+  window.addEventListener("mouseup", endMouseDrag);
+  menu.addEventListener("touchstart", startTouchDrag, { passive: true });
+  menu.addEventListener("touchmove", moveTouchDrag, { passive: false });
+  menu.addEventListener("touchend", endTouchDrag, { passive: true });
+  menu.addEventListener("touchcancel", cancelTouchDrag, { passive: true });
+  menu.addEventListener("click", blockDraggedClick, true);
+  animationFrame = window.requestAnimationFrame(renderOrbit);
+  return () => window.cancelAnimationFrame(animationFrame);
 }
 
 function flashTime() {
@@ -2162,13 +4304,84 @@ function applyAppSettings() {
   }
 }
 
+function shouldGenerateFloatingNumbers() {
+  return state.page === "landing" || (state.page === "home" && !state.running);
+}
+
+function isFloatingNumbersRenderable() {
+  if (!appSettings.floatingNumbers) return false;
+  if (shouldGenerateFloatingNumbers()) return true;
+  if (state.formulaDrain) return !state.formulaDrainComplete;
+  return false;
+}
+
+function beginFormulaDrain() {
+  if (state.formulaDrain) return;
+
+  state.formulaDrain = true;
+  state.formulaDrainComplete = false;
+  state.formulaDrainTarget = Math.min(formulaTargetCount(), formulae.length);
+
+  formulae.forEach((formula, index) => {
+    if (index >= state.formulaDrainTarget || !formula.node) {
+      formula.drained = true;
+      if (formula.node) formula.node.style.opacity = "0";
+      return;
+    }
+
+    const offset = getFormulaFlowOffset(formula, index, state.formulaDrainTarget);
+    const rawProgress = state.formulaTime + offset;
+    if (rawProgress < 0) {
+      formula.drained = true;
+      if (formula.node) formula.node.style.opacity = "0";
+      return;
+    }
+
+    formula.drainOffset = offset;
+    formula.drainEndCycle = Math.floor(rawProgress) + 1;
+    formula.drained = false;
+  });
+}
+
+function endFormulaDrain() {
+  state.formulaDrain = false;
+  state.formulaDrainComplete = false;
+  state.formulaDrainTarget = 0;
+  resetFormulaFlowFromCenter();
+}
+
+function getFormulaFlowOffset(formula, index, target) {
+  return Number.isFinite(formula.flowOffset) ? formula.flowOffset : index / Math.max(1, target);
+}
+
+function resetFormulaFlowFromCenter() {
+  const target = Math.max(1, formulaTargetCount());
+  const spawnWindow = 0.92;
+  state.formulaTime = 0;
+  state.formulaPulse = 0;
+
+  formulae.forEach((formula, index) => {
+    formula.drained = false;
+    formula.drainOffset = null;
+    formula.drainEndCycle = null;
+    formula.flowOffset = -(index * spawnWindow) / target;
+    formula.cycle = -1;
+    if (formula.node) formula.node.style.opacity = "0";
+  });
+}
+
+function setFloatingNumbersPagePaused(paused) {
+  const wasPaused = document.body.classList.contains("floating-page-paused");
+  if (paused === wasPaused) return;
+
+  document.body.classList.toggle("floating-page-paused", paused);
+  if (paused) beginFormulaDrain();
+  else endFormulaDrain();
+}
+
 function applyDesmosSettings() {
   document.body.classList.toggle("desmos-answer-box-hidden", desmosSettings.hideAnswerBox);
   document.body.classList.toggle("desmos-timebar-off", !desmosSettings.timebar);
-
-  if (elements.desmosCalculator) {
-    elements.desmosCalculator.classList.toggle("hide-answer-box", desmosSettings.hideAnswerBox);
-  }
 
   if (elements.desmosHideAnswerToggle) {
     elements.desmosHideAnswerToggle.classList.toggle("active", desmosSettings.hideAnswerBox);
@@ -2178,18 +4391,6 @@ function applyDesmosSettings() {
     elements.desmosTimebarToggle.classList.toggle("active", desmosSettings.timebar);
     elements.desmosTimebarToggle.setAttribute("aria-pressed", String(desmosSettings.timebar));
   }
-
-  elements.desmosSpeedrunDifficultyButtons.forEach((button) => {
-    const active = button.dataset.speedrunDifficulty === desmosSettings.speedrunDifficulty;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-
-  elements.desmosTypingDifficultyButtons.forEach((button) => {
-    const active = button.dataset.typingDifficulty === desmosSettings.typingDifficulty;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
 
   updateDesmosTimerView();
   if (embeddedDesmos && typeof embeddedDesmos.resize === "function") {
@@ -2207,6 +4408,7 @@ function toggleFloatingNumbers() {
   appSettings.floatingNumbers = !appSettings.floatingNumbers;
   localStorage.setItem("bc-blitz-floating-numbers", appSettings.floatingNumbers ? "on" : "off");
   applyAppSettings();
+  if (appSettings.floatingNumbers && shouldGenerateFloatingNumbers()) resetFormulaFlowFromCenter();
 }
 
 function toggleDesmosAnswerBox() {
@@ -2218,26 +4420,6 @@ function toggleDesmosAnswerBox() {
 function toggleDesmosTimebar() {
   desmosSettings.timebar = !desmosSettings.timebar;
   localStorage.setItem("bc-blitz-desmos-timebar", desmosSettings.timebar ? "on" : "off");
-  applyDesmosSettings();
-}
-
-function setDesmosSpeedrunDifficulty(difficulty) {
-  if (!desmosSpeedrunDifficulty[difficulty]) return;
-  desmosSettings.speedrunDifficulty = difficulty;
-  localStorage.setItem("bc-blitz-desmos-speedrun-difficulty", difficulty);
-  if (!desmosState.running) {
-    const timing = desmosSpeedrunDifficulty[difficulty];
-    desmosState.time = timing.start;
-    desmosState.maxTime = timing.max;
-  }
-  applyDesmosSettings();
-}
-
-function setDesmosTypingDifficulty(difficulty) {
-  if (!desmosTypingDifficulty[difficulty]) return;
-  desmosSettings.typingDifficulty = difficulty;
-  localStorage.setItem("bc-blitz-desmos-typing-difficulty", difficulty);
-  if (desmosState.mode === "typing") resetMathTypingGame();
   applyDesmosSettings();
 }
 
@@ -2271,6 +4453,20 @@ function postTi84FrameMessage(message) {
   if (frame && frame.contentWindow) frame.contentWindow.postMessage(message, "*");
 }
 
+function setTi84GuideOpen(open, options = {}) {
+  if (!elements.ti84Guide || !elements.ti84GuideToggle || !elements.calcPage) return;
+  elements.ti84Guide.hidden = !open;
+  elements.ti84GuideToggle.setAttribute("aria-expanded", String(open));
+  elements.ti84GuideToggle.setAttribute("aria-label", open ? "Close TI84 AP guide" : "Open TI84 AP guide");
+  elements.calcPage.classList.toggle("ti84-guide-open", open);
+  if (options.focus !== false) elements.ti84GuideToggle.focus();
+}
+
+function toggleTi84Guide() {
+  if (!elements.ti84Guide) return;
+  setTi84GuideOpen(elements.ti84Guide.hidden);
+}
+
 async function toggleTi84Fullscreen() {
   if (!elements.ti84Panel || !elements.ti84Fullscreen) return;
   if (!document.fullscreenEnabled || !elements.ti84Panel.requestFullscreen) {
@@ -2293,14 +4489,18 @@ async function toggleTi84Fullscreen() {
 }
 
 function showPage(page) {
+  const showingLanding = page === "landing";
   const showingHome = page === "home";
   const showingDeveloper = page === "developer";
   const showingDesmos = page === "desmos";
-  const showingStudy = page === "study";
   const showingAP = page === "ap";
+  const showingStudy = page === "study" || showingAP;
   const showingCalc = page === "calc";
   const showingGame = page === "game";
+  state.page = page;
 
+  elements.landingPage.classList.toggle("active", showingLanding);
+  elements.landingPage.setAttribute("aria-hidden", String(!showingLanding));
   elements.homePage.classList.toggle("active", showingHome);
   elements.homePage.setAttribute("aria-hidden", String(!showingHome));
   elements.developerPage.classList.toggle("active", showingDeveloper);
@@ -2309,22 +4509,22 @@ function showPage(page) {
   elements.desmosPage.setAttribute("aria-hidden", String(!showingDesmos));
   elements.studyPage.classList.toggle("active", showingStudy);
   elements.studyPage.setAttribute("aria-hidden", String(!showingStudy));
-  elements.apPage.classList.toggle("active", showingAP);
-  elements.apPage.setAttribute("aria-hidden", String(!showingAP));
   elements.calcPage.classList.toggle("active", showingCalc);
   elements.calcPage.setAttribute("aria-hidden", String(!showingCalc));
   elements.gamePage.hidden = !showingGame;
   document.body.classList.toggle("game-view", showingGame);
   document.body.classList.toggle("frq-view", showingGame && state.current && state.current.kind === "frq");
+  if (!showingCalc) setTi84GuideOpen(false, { focus: false });
   elements.frqPanel.classList.toggle("active", showingGame && state.current && state.current.kind === "frq");
   elements.frqPanel.setAttribute("aria-hidden", String(!(showingGame && state.current && state.current.kind === "frq")));
 
   elements.navPlay.classList.toggle("active", showingHome);
   elements.navDesmos.classList.toggle("active", showingDesmos);
   elements.navCalc.classList.toggle("active", showingCalc);
-  elements.navAP.classList.toggle("active", showingAP);
+  elements.navAP.classList.toggle("active", false);
   elements.navStudy.classList.toggle("active", showingStudy);
   elements.navDeveloper.classList.toggle("active", showingDeveloper);
+  setFloatingNumbersPagePaused(!shouldGenerateFloatingNumbers());
 
   if (showingDesmos) {
     renderDataLatex(elements.desmosPage, { skipHidden: true });
@@ -2337,7 +4537,7 @@ function showPage(page) {
       postTi84FrameMessage({ type: "ti84:fullscreen", active: isTi84Fullscreen() });
     }, 80);
   }
-  if (showingStudy) renderDataLatex(elements.studyPage);
+  if (showingStudy) setStudyMode(showingAP ? "ap" : "study");
 }
 
 function leaveGame(page) {
@@ -2354,8 +4554,15 @@ function leaveGame(page) {
   showPage(page);
 }
 
-function startGame(mode = state.mode) {
-  state.mode = modeLabels[mode] ? mode : "all";
+function startGame(mode = null) {
+  if (modeLabels[mode]) {
+    state.modes = [mode];
+    state.mode = mode;
+  } else {
+    const selectedModes = getSelectedModes();
+    state.mode = selectedModes[0];
+  }
+  syncModeControls();
   state.running = true;
   state.score = 0;
   state.streak = 0;
@@ -2416,10 +4623,10 @@ function resizeCanvas() {
 }
 
 function spawnFormulaBurst(count, calm) {
-  state.formulaPulse = clamp(state.formulaPulse + count / (calm ? 360 : 460), 0, 1.25);
+  state.formulaPulse = clamp(state.formulaPulse + count / (calm ? 480 : 620), 0, 1.05);
 
   const target = formulaTargetCount();
-  const refreshCount = Math.min(Math.max(4, Math.round(count / 9)), Math.floor(target * 0.18));
+  const refreshCount = Math.min(Math.max(3, Math.round(count / 12)), Math.floor(target * 0.12));
   for (let i = 0; i < refreshCount; i += 1) {
     const token = formulae[(state.problemIndex * 19 + i * 13) % formulae.length];
     if (token) refreshFormulaToken(token, true);
@@ -2445,9 +4652,33 @@ function attachFormulaNode(token) {
   node.style.fontSize = `${token.baseSize}px`;
   node.style.opacity = "0";
   layer.appendChild(node);
-  renderStaticMath(node, token.text);
   token.node = node;
+  renderFloatingFormulaNode(token);
   return token;
+}
+
+function renderFloatingFormulaNode(token) {
+  const node = token.node;
+  if (!node) return;
+
+  if (token.integralLane) {
+    node.textContent = "";
+    node.classList.remove("mq-math-mode", "math-fallback");
+
+    const symbol = document.createElement("span");
+    symbol.className = "floating-integral-symbol";
+    symbol.textContent = "∫";
+
+    const body = document.createElement("span");
+    body.className = "floating-integral-body";
+    body.textContent = token.integralBody || " f(x) dx";
+
+    node.appendChild(symbol);
+    node.appendChild(body);
+    return;
+  }
+
+  renderStaticMath(node, token.text);
 }
 
 function removeFormulaNode(token) {
@@ -2458,9 +4689,9 @@ function removeFormulaNode(token) {
 }
 
 function formulaTargetCount() {
-  if (window.innerWidth < 560) return state.running ? 62 : 48;
-  if (window.innerWidth < 900) return state.running ? 86 : 64;
-  return state.running ? 108 : 78;
+  if (window.innerWidth < 560) return state.running ? 54 : 42;
+  if (window.innerWidth < 900) return state.running ? 76 : 56;
+  return state.running ? 94 : 68;
 }
 
 function refreshFormulaToken(token, keepPhase = false) {
@@ -2476,10 +4707,12 @@ function refreshFormulaToken(token, keepPhase = false) {
     "parametric",
     "derivative",
     "limit",
+    "identity",
     "series",
     "vector",
-    "integral",
     "derivative",
+    "limit",
+    "integral",
     "parametric"
   ];
   const angle = (token.index * goldenAngle + rand(-0.1, 0.1)) % (Math.PI * 2);
@@ -2491,16 +4724,20 @@ function refreshFormulaToken(token, keepPhase = false) {
   token.category = category;
   token.integralLane = integralLane;
   token.text = createFloatingFormulaLatex(category);
+  token.integralBody = integralLane ? createFloatingIntegralBody() : "";
   token.angle = angle;
   token.dirX = dirX;
   token.dirY = dirY;
-  token.startRadius = rand(8, Math.min(width, height) * 0.045);
-  token.endRadius = diagonal * rand(0.52, 0.66);
-  token.depthStart = rand(-560, -360);
-  token.depthEnd = rand(90, 170);
-  token.baseSize = integralLane ? rand(32, 46) : rand(22, 36);
-  token.startScale = rand(0.34, 0.48);
-  token.endScale = integralLane ? rand(1.08, 1.32) : rand(1.05, 1.42);
+  token.startRadius = rand(
+    Math.max(22, Math.min(width, height) * 0.028),
+    Math.max(34, Math.min(width, height) * 0.064)
+  );
+  token.endRadius = diagonal * rand(0.56, 0.72);
+  token.depthStart = rand(-980, -720);
+  token.depthEnd = rand(170, 285);
+  token.baseSize = integralLane ? rand(44, 64) : rand(22, 36);
+  token.startScale = integralLane ? rand(0.045, 0.07) : rand(0.042, 0.072);
+  token.endScale = integralLane ? rand(1.28, 1.62) : rand(1.1, 1.5);
   token.tiltX = -dirY * rand(8, 18);
   token.tiltY = dirX * rand(8, 18);
   token.roll = rand(-5, 5);
@@ -2522,7 +4759,7 @@ function refreshFormulaToken(token, keepPhase = false) {
     token.node.className = `floating-formula math-render formula-${category}${token.integralLane ? " integral-formula" : ""}`;
     token.node.style.color = token.hue;
     token.node.style.fontSize = `${token.baseSize}px`;
-    renderStaticMath(token.node, token.text);
+    renderFloatingFormulaNode(token);
   }
 }
 
@@ -2587,11 +4824,12 @@ function drawVfx(now) {
   state.lastFrame = now;
   tickTimer(dt);
   tickDesmosTimer(dt);
-  if (appSettings.floatingNumbers) replenishFormulae(dt);
+  const renderFloatingNumbers = isFloatingNumbersRenderable();
+  if (renderFloatingNumbers) replenishFormulae(dt);
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   drawAmbient(now);
   drawParticles(dt);
-  if (appSettings.floatingNumbers) drawFormulae(dt);
+  if (renderFloatingNumbers) drawFormulae(dt);
   drawSparks(dt);
   window.requestAnimationFrame(drawVfx);
 }
@@ -2606,7 +4844,7 @@ function tickTimer(dt) {
 function tickDesmosTimer(dt) {
   if (!desmosState.running) return;
   desmosState.promptHealthTime += dt;
-  if (desmosState.promptHealthTime >= 0.25) {
+  if (!desmosState.transitioning && desmosState.promptHealthTime >= 0.25) {
     desmosState.promptHealthTime = 0;
     ensureDesmosPromptCardsFilled(desmosState.current);
   }
@@ -2666,10 +4904,12 @@ function drawParticles(dt) {
 }
 
 function drawFormulae(dt) {
-  const target = Math.min(formulaTargetCount(), formulae.length);
+  const draining = state.formulaDrain;
+  const target = draining ? Math.min(state.formulaDrainTarget || formulaTargetCount(), formulae.length) : Math.min(formulaTargetCount(), formulae.length);
   const centerX = window.innerWidth / 2;
   const centerY = window.innerHeight / 2;
   const edgePadding = Math.max(220, Math.min(window.innerWidth, window.innerHeight) * 0.24);
+  let drainingCount = 0;
 
   for (let i = 0; i < formulae.length; i += 1) {
     const f = formulae[i];
@@ -2679,17 +4919,42 @@ function drawFormulae(dt) {
       continue;
     }
 
+    if (draining && f.drained) {
+      if (f.node) f.node.style.opacity = "0";
+      continue;
+    }
+
+    if (draining && !f.node) {
+      f.drained = true;
+      continue;
+    }
+
     if (!f.node) attachFormulaNode(f);
-    const rawProgress = state.formulaTime + i / target;
+    const offset = draining ? f.drainOffset : getFormulaFlowOffset(f, i, target);
+    const rawProgress = state.formulaTime + offset;
+    if (rawProgress < 0) {
+      f.node.style.opacity = "0";
+      continue;
+    }
+
     const cycle = Math.floor(rawProgress);
     const progress = rawProgress - cycle;
 
-    if (cycle !== f.cycle) {
+    if (draining && cycle >= f.drainEndCycle) {
+      f.drained = true;
+      f.node.style.opacity = "0";
+      continue;
+    }
+
+    if (!draining && cycle !== f.cycle) {
       f.cycle = cycle;
       if ((cycle + f.index) % 3 === 0) refreshFormulaToken(f, true);
     }
 
+    if (draining) drainingCount += 1;
+
     const depthEase = smoothstep(0, 1, progress);
+    const tunnelTravel = Math.pow(progress, 1.82);
     const distanceToVerticalEdge = f.dirX === 0 ? 0 : (f.dirX > 0 ? window.innerWidth - centerX : centerX) / Math.abs(f.dirX);
     const distanceToHorizontalEdge = f.dirY === 0 ? 0 : (f.dirY > 0 ? window.innerHeight - centerY : centerY) / Math.abs(f.dirY);
     const distanceToScreenEdge = Math.min(
@@ -2697,7 +4962,7 @@ function drawFormulae(dt) {
       distanceToHorizontalEdge || Number.POSITIVE_INFINITY
     );
     const endRadius = Math.max(f.endRadius, distanceToScreenEdge + edgePadding);
-    const radius = lerp(f.startRadius, endRadius, progress);
+    const radius = lerp(f.startRadius, endRadius, tunnelTravel);
     const x = centerX + f.dirX * radius;
     const y = centerY + f.dirY * radius;
     const depth = lerp(f.depthStart, f.depthEnd, depthEase);
@@ -2706,14 +4971,16 @@ function drawFormulae(dt) {
     const rotateX = lerp(f.tiltX * 0.12, f.tiltX, depthEase);
     const rotateY = lerp(f.tiltY * 0.12, f.tiltY, depthEase);
     const rotateZ = f.roll + f.rollDrift * progress;
-    const pulseScale = 1 + state.formulaPulse * 0.08 * (1 - progress);
-    const alpha = smoothstep(0.02, 0.16, progress) * f.opacity;
+    const pulseScale = 1 + state.formulaPulse * 0.06 * (1 - progress);
+    const alpha = smoothstep(0, 0.1, progress) * f.opacity * (1 - smoothstep(0.94, 1, progress) * 0.08);
 
     f.x = x;
     f.y = y;
     f.node.style.opacity = `${alpha}`;
     f.node.style.transform = `translate3d(${x}px, ${y}px, ${depth}px) translate(-50%, -50%) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale3d(${scale * stretch * pulseScale}, ${scale * pulseScale}, 1)`;
   }
+
+  if (draining && drainingCount === 0) state.formulaDrainComplete = true;
 }
 
 function drawSparks(dt) {
@@ -2737,15 +5004,24 @@ function drawSparks(dt) {
 }
 
 elements.modeButtons.forEach((button) => {
-  button.addEventListener("click", () => startGame(button.dataset.mode));
+  button.addEventListener("click", () => {
+    setSelectedMode(button.dataset.mode);
+  });
 });
-elements.navHome.addEventListener("click", () => leaveGame("home"));
+elements.modeStart.addEventListener("click", () => startGame());
+elements.modeSettings.addEventListener("click", () => {
+  setModePanelOpen(elements.modeGrid.hidden);
+});
+elements.navHome.addEventListener("click", () => leaveGame("landing"));
 elements.navPlay.addEventListener("click", () => leaveGame("home"));
 elements.navDesmos.addEventListener("click", () => leaveGame("desmos"));
 elements.navCalc.addEventListener("click", () => leaveGame("calc"));
 elements.navAP.addEventListener("click", () => leaveGame("ap"));
 elements.navStudy.addEventListener("click", () => leaveGame("study"));
 elements.navDeveloper.addEventListener("click", () => leaveGame("developer"));
+elements.homeTargetButtons.forEach((button) => {
+  button.addEventListener("click", () => leaveGame(button.dataset.homeTarget || "landing"));
+});
 elements.start.addEventListener("click", () => startGame());
 elements.restart.addEventListener("click", () => startGame());
 elements.skip.addEventListener("click", skipQuestion);
@@ -2761,13 +5037,18 @@ elements.desmosGuideClose.addEventListener("click", () => {
 elements.desmosModeButtons.forEach((button) => {
   button.addEventListener("click", () => setDesmosMode(button.dataset.desmosMode));
 });
+elements.studyModeButtons.forEach((button) => {
+  button.addEventListener("click", () => setStudyMode(button.dataset.studyMode));
+});
 elements.mathTypingInput.addEventListener("input", handleMathTypingInput);
 elements.mathTypingInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
+  if (event.key === "Tab") {
     event.preventDefault();
     event.stopPropagation();
     restartMathTypingGame();
+    return;
   }
+  if (handleMathTypingSpecialKey(event)) return;
 });
 elements.mathTypingRestart.addEventListener("click", () => {
   restartMathTypingGame();
@@ -2785,12 +5066,7 @@ elements.themeLight.addEventListener("click", () => setTheme("light"));
 elements.floatingToggle.addEventListener("click", toggleFloatingNumbers);
 if (elements.desmosHideAnswerToggle) elements.desmosHideAnswerToggle.addEventListener("click", toggleDesmosAnswerBox);
 if (elements.desmosTimebarToggle) elements.desmosTimebarToggle.addEventListener("click", toggleDesmosTimebar);
-elements.desmosSpeedrunDifficultyButtons.forEach((button) => {
-  button.addEventListener("click", () => setDesmosSpeedrunDifficulty(button.dataset.speedrunDifficulty));
-});
-elements.desmosTypingDifficultyButtons.forEach((button) => {
-  button.addEventListener("click", () => setDesmosTypingDifficulty(button.dataset.typingDifficulty));
-});
+if (elements.ti84GuideToggle) elements.ti84GuideToggle.addEventListener("click", toggleTi84Guide);
 elements.ti84Fullscreen.addEventListener("click", toggleTi84Fullscreen);
 document.addEventListener("fullscreenchange", updateTi84FullscreenButton);
 window.addEventListener("keydown", (event) => {
@@ -2803,7 +5079,11 @@ window.addEventListener("keydown", (event) => {
     elements.desmosGuideToggle.focus();
     return;
   }
-  if (event.key === "Enter" && isMathTypingActive() && elements.settingsOverlay.hidden && elements.desmosGuide.hidden) {
+  if (event.key === "Escape" && elements.ti84Guide && !elements.ti84Guide.hidden) {
+    setTi84GuideOpen(false);
+    return;
+  }
+  if (event.key === "Tab" && isMathTypingActive() && elements.settingsOverlay.hidden && elements.desmosGuide.hidden) {
     event.preventDefault();
     restartMathTypingGame();
     return;
@@ -2824,13 +5104,17 @@ window.addEventListener("resize", () => {
 });
 
 resizeCanvas();
+syncModeControls();
+setModePanelOpen(false);
 renderStats();
 applyAppSettings();
 applyDesmosSettings();
 initDesmosPromptTooltips();
+initLandingOrbitMenu();
 resetMathTypingGame();
 setDesmosMode("speedrun");
-showPage("home");
+showPage("landing");
 seedAmbientFormulae(formulaPoolLimit);
+resetFormulaFlowFromCenter();
 setDesmosAnswerEnabled(false);
 window.requestAnimationFrame(drawVfx);
