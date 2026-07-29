@@ -8,6 +8,12 @@ const elements = {
   developerPage: document.getElementById("developer-page"),
   desmosPage: document.getElementById("desmos-page"),
   studyPage: document.getElementById("study-page"),
+  studyVideoWatch: document.getElementById("study-video-watch"),
+  studyVideoPlayer: document.getElementById("study-video-player"),
+  studyVideoGrid: document.getElementById("study-video-grid"),
+  studyVideoClose: document.getElementById("study-video-close"),
+  studyVideoChapter: document.getElementById("study-video-chapter"),
+  studyVideoTitle: document.getElementById("study-video-title"),
   calcPage: document.getElementById("calc-page"),
   ti84Panel: document.querySelector(".ti84-panel"),
   ti84Fullscreen: document.getElementById("ti84-fullscreen"),
@@ -57,19 +63,22 @@ const elements = {
   desmosPromptFonts: [...document.querySelectorAll("[data-desmos-prompt-font]")],
   desmosModeButtons: [...document.querySelectorAll("[data-desmos-mode]")],
   desmosModePanels: [...document.querySelectorAll("[data-desmos-panel]")],
+  desmosCalculatorStage: document.getElementById("desmos-calculator-stage"),
   desmosCalculator: document.getElementById("desmos-calculator"),
   desmosStart: document.getElementById("desmos-start"),
   desmosScore: document.getElementById("desmos-score"),
-  desmosGuideToggle: document.getElementById("desmos-guide-toggle"),
-  desmosGuideClose: document.getElementById("desmos-guide-close"),
+  desmosScoreValue: document.getElementById("desmos-score-value"),
+  desmosAnswerToggle: document.getElementById("desmos-answer-toggle"),
   desmosGuide: document.getElementById("desmos-guide"),
   desmosFeedback: document.getElementById("desmos-feedback"),
-  desmosHideAnswerToggle: document.getElementById("desmos-hide-answer-toggle"),
+  desmosFeedbackEffect: document.getElementById("desmos-feedback-effect"),
   desmosTimebarToggle: document.getElementById("desmos-timebar-toggle"),
-  studyModeButtons: [...document.querySelectorAll("[data-study-mode]")],
-  studyModePanels: [...document.querySelectorAll("[data-study-panel]")],
   mathTypingPanel: document.querySelector(".math-typing-panel"),
   mathTypingTest: document.getElementById("typingTest"),
+  mathTypingConfig: document.getElementById("math-typing-config"),
+  mathTypingModeButtons: [...document.querySelectorAll("[data-math-typing-mode]")],
+  mathTypingAmountButtons: [...document.querySelectorAll("[data-math-typing-amount]")],
+  mathTypingWordsWrapper: document.getElementById("wordsWrapper"),
   mathTypingWords: document.getElementById("words"),
   mathTypingInput: document.getElementById("wordsInput"),
   mathTypingKeyboard: document.getElementById("math-typing-keyboard"),
@@ -128,6 +137,7 @@ const desmosState = {
   advanceTimer: 0,
   advanceToken: 0,
   readyTimer: 0,
+  feedbackEffectTimer: 0,
   promptToken: 0,
   promptHealthTime: 0,
   mode: "speedrun"
@@ -147,6 +157,10 @@ const mathTypingState = {
   finished: false,
   resultVisible: false,
   latestResult: null,
+  deadline: 0,
+  timerId: 0,
+  viewportLine: 0,
+  viewportOffset: 0,
   caretX: 0,
   caretY: 0,
   caretHeight: 22,
@@ -155,16 +169,41 @@ const mathTypingState = {
 
 const appSettings = {
   theme: localStorage.getItem("bc-blitz-theme") || "dark",
-  floatingNumbers: localStorage.getItem("bc-blitz-floating-numbers") !== "off"
+  floatingNumbers: false
 };
 
 const desmosSettings = {
-  hideAnswerBox: localStorage.getItem("bc-blitz-desmos-hide-answer") === "on",
+  hideAnswerBox: true,
   timebar: localStorage.getItem("bc-blitz-desmos-timebar") !== "off"
 };
 
+const mathTypingAmounts = [15, 30, 60];
+const storedMathTypingMode = localStorage.getItem("bc-blitz-math-typing-mode");
+const storedMathTypingAmount = Number(localStorage.getItem("bc-blitz-math-typing-amount"));
+const mathTypingSettings = {
+  mode: ["time", "words"].includes(storedMathTypingMode) ? storedMathTypingMode : "time",
+  amount: mathTypingAmounts.includes(storedMathTypingAmount) ? storedMathTypingAmount : 30
+};
+
 const desmosSpeedrunTiming = { start: 60, max: 75, bonus: 5 };
-const mathTypingWordCount = 28;
+const mathTypingTimedBufferSize = 72;
+
+const studyVideos = Object.freeze([
+  { id: "WUvTyaaNkzM", title: "The essence of calculus" },
+  { id: "9vKqVkMQHKk", title: "The paradox of the derivative" },
+  { id: "S0_qX4VJhMQ", title: "Derivative formulas through geometry" },
+  { id: "YG15m2VwSjA", title: "Visualizing the chain rule and product rule" },
+  { id: "m2MIpDrF7Es", title: "What's so special about Euler's number e?" },
+  { id: "qb40J4N1fa4", title: "Implicit differentiation, what's going on here?" },
+  { id: "kfF40MiS7zA", title: "Limits, L'Hôpital's rule, and epsilon delta definitions" },
+  { id: "rfG8ce4nNh0", title: "Integration and the fundamental theorem of calculus" },
+  { id: "FnJqaIESC2s", title: "What does area have to do with slope?" },
+  { id: "BLkz5LGWihw", title: "Higher order derivatives" },
+  { id: "3d6DsjIBzJ4", title: "Taylor series" },
+  { id: "CfW845LNObM", title: "The other way to visualize derivatives" }
+]);
+
+const studyVideoState = { selectedIndex: null };
 
 const keys = ["A", "B", "C", "D"];
 const modeLabels = {
@@ -234,9 +273,10 @@ const desmosPrompts = [
   { label: "Composite", latex: "y=\\sqrt{x^2+1}", answer: "y=sqrt(x^2+1)" },
   {
     label: "Parametric Circle",
-    collegeboard: ["x=\\cos(t)", "y=\\sin(t)"],
-    desmos: ["x(t)=\\cos(t)", "y(t)=\\sin(t)"],
-    answer: ["x(t)=cos(t)", "y(t)=sin(t)"]
+    collegeboard: ["\\mathbf{r}(t)=\\langle\\cos(t),\\sin(t)\\rangle", "graph the vector-valued curve"],
+    desmos: "(\\cos(t),\\sin(t))",
+    answer: "(cos(t),sin(t))",
+    answerVariants: [["X(t)=cos(t)", "Y(t)=sin(t)", "(X(t),Y(t))"]]
   },
   {
     label: "Derivative",
@@ -251,10 +291,10 @@ const desmosPrompts = [
     answer: ["f(x)=x^3-5x", "f'(2)"]
   },
   {
-    label: "Antiderivative",
-    collegeboard: ["f(x)=6x^2-4", { type: "mixed", parts: ["antiderivative of ", { math: "f(x)" }] }],
-    desmos: ["f(x)=6x^2-4", "\\int_0^x f(t)dt"],
-    answer: ["f(x)=6x^2-4", "\\int_0^x f(t)dt"]
+    label: "Accumulation Function",
+    collegeboard: ["f(x)=6x^2-4", { type: "mixed", parts: ["define ", { math: "A(x)=\\int_0^x f(t)dt" }] }],
+    desmos: ["f(x)=6x^2-4", "A(x)=\\int_0^x f(t)dt"],
+    answer: ["f(x)=6x^2-4", "A(x)=\\int_0^x f(t)dt"]
   },
   {
     label: "Net Change",
@@ -446,8 +486,21 @@ function generatedSimplePrompt() {
   };
 }
 
-function generatedCalculusPrompt() {
-  const kind = randInt(1, 7);
+const desmosCalculusKindTiers = Object.freeze({
+  1: [1, 2, 3, 4, 5, 7],
+  2: [6, 8, 10, 11, 12, 13, 16],
+  3: [9, 14, 15]
+});
+
+function desmosCalculusKindsForDifficulty(maxDifficulty) {
+  const cappedDifficulty = clamp(Math.trunc(maxDifficulty) || 1, 1, 3);
+  return Object.entries(desmosCalculusKindTiers)
+    .filter(([difficulty]) => Number(difficulty) <= cappedDifficulty)
+    .flatMap(([, kinds]) => kinds);
+}
+
+function generatedCalculusPrompt(maxDifficulty = 3) {
+  const kind = pick(desmosCalculusKindsForDifficulty(maxDifficulty));
   const fn = randomFunctionName();
   if (kind === 1) {
     const expr = makePolynomial("x", 3);
@@ -482,11 +535,14 @@ function generatedCalculusPrompt() {
     };
   }
   if (kind === 4) {
-    const expr = makePolynomial("x", 2);
+    const coefficient = randInt(1, 4);
+    const horizontalShift = randInt(-3, 3);
+    const verticalShift = randInt(1, 5);
+    const expr = `${leadingTerm(coefficient, `(x${signedTerm(-horizontalShift)})^2`)}${signedTerm(verticalShift)}`;
     const upper = randInt(2, 6);
     return {
-      label: "Generated Area",
-      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["area under ", { math: fn }, " on ", { math: `[0,${upper}]` }] }],
+      label: "Generated Area Under a Curve",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["area bounded by ", { math: `y=${fn}(x)` }, ", the x-axis, and ", { math: `x=0` }, ", ", { math: `x=${upper}` }] }],
       desmos: [`${fn}(x)=${expr}`, `\\int_0^${upper} ${fn}(x)dx`],
       answer: [`${fn}(x)=${expr}`, `\\int_0^${upper} ${fn}(x)dx`],
       signature: `area:${fn}:${expr}:${upper}`
@@ -507,27 +563,168 @@ function generatedCalculusPrompt() {
   if (kind === 6) {
     const a = randomNonZero(1, 4);
     const b = randomNonZero(1, 4);
+    const upper = b === 1 ? "\\pi" : `\\frac{\\pi}{${b}}`;
     return {
-      label: "Generated Polar Area",
-      collegeboard: [`r(\\theta)=${a}\\sin(${b}\\theta)`, { type: "mixed", parts: ["area of ", { math: "r(\\theta)" }, " on ", { math: "[0,\\pi]" }] }],
-      desmos: [`r(\\theta)=${a}\\sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^\\pi r(\\theta)^2d\\theta`],
-      answer: [`r(\\theta)=${a}sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^\\pi r(\\theta)^2d\\theta`],
+      label: "Generated Polar Petal Area",
+      collegeboard: [`r(\\theta)=${a}\\sin(${b}\\theta)`, { type: "mixed", parts: ["area of one petal traced for ", { math: `0\\le\\theta\\le${upper}` }] }],
+      desmos: [`r(\\theta)=${a}\\sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^{${upper}} r(\\theta)^2d\\theta`],
+      answer: [`r(\\theta)=${a}sin(${b}\\theta)`, `\\frac{1}{2}\\int_0^{${upper}} r(\\theta)^2d\\theta`],
       signature: `polar-area:${a}:${b}`
     };
   }
-  const a = randomNonZero(1, 4);
-  const b = randomNonZero(1, 4);
+  if (kind === 7) {
+    const a = randomNonZero(1, 4);
+    const b = randomNonZero(1, 4);
+    const xComponent = leadingTerm(a, "\\cos(t)");
+    const yComponent = leadingTerm(b, "\\sin(t)");
+    const xAnswer = leadingTerm(a, "cos(t)");
+    const yAnswer = leadingTerm(b, "sin(t)");
+    return {
+      label: "Generated Vector-Valued Curve",
+      collegeboard: [`\\mathbf{r}(t)=\\langle${xComponent},${yComponent}\\rangle`, "graph the vector-valued curve"],
+      desmos: `( ${xComponent}, ${yComponent} )`,
+      answer: `(${xAnswer},${yAnswer})`,
+      answerVariants: [[`X(t)=${xAnswer}`, `Y(t)=${yAnswer}`, "(X(t),Y(t))"]],
+      signature: `param:${a}:${b}`
+    };
+  }
+  if (kind === 8) {
+    const expr = makePolynomial("x", 2);
+    const lower = randInt(-2, 2);
+    return {
+      label: "Generated Accumulation Function",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["define the accumulation function ", { math: `A(x)=\\int_{${lower}}^x ${fn}(t)dt` }] }],
+      desmos: [`${fn}(x)=${expr}`, `A(x)=\\int_{${lower}}^x ${fn}(t)dt`],
+      answer: [`${fn}(x)=${expr}`, `A(x)=\\int_{${lower}}^x ${fn}(t)dt`],
+      signature: `accumulation:${fn}:${expr}:${lower}`
+    };
+  }
+  if (kind === 9) {
+    const lower = randInt(-2, 1);
+    const upper = randInt(lower + 2, lower + 5);
+    const slope = randomNonZero(-3, 3);
+    const intercept = randInt(-4, 4);
+    const gapScale = randInt(1, 3);
+    const lowerExpr = cleanExpression(`${leadingTerm(slope, "x")}${signedTerm(intercept)}`);
+    const gapExpr = `${leadingTerm(gapScale, `(x${signedTerm(-lower)})(${upper}-x)`)}`;
+    return {
+      label: "Generated Area Between Curves",
+      collegeboard: [`g(x)=${lowerExpr}`, `f(x)=g(x)+${gapExpr}`, { type: "mixed", parts: ["area between ", { math: "f" }, " and ", { math: "g" }, " on ", { math: `[${lower},${upper}]` }] }],
+      desmos: [`g(x)=${lowerExpr}`, `f(x)=g(x)+${gapExpr}`, `\\int_{${lower}}^{${upper}}(f(x)-g(x))dx`],
+      answer: [`g(x)=${lowerExpr}`, `f(x)=g(x)+${gapExpr}`, `\\int_{${lower}}^{${upper}}(f(x)-g(x))dx`],
+      signature: `between:${lowerExpr}:${gapExpr}:${lower}:${upper}`
+    };
+  }
+  if (kind === 10) {
+    const slope = randInt(1, 4);
+    const intercept = randInt(1, 5);
+    const upper = randInt(2, 6);
+    const expr = cleanExpression(`${leadingTerm(slope, "x")}${signedTerm(intercept)}`);
+    return {
+      label: "Generated Disk Volume",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["volume formed by rotating the region under ", { math: fn }, " on ", { math: `[0,${upper}]` }, " about the x-axis"] }],
+      desmos: [`${fn}(x)=${expr}`, `\\pi\\int_0^${upper} ${fn}(x)^2dx`],
+      answer: [`${fn}(x)=${expr}`, `\\pi\\int_0^${upper} ${fn}(x)^2dx`],
+      signature: `disk:${fn}:${expr}:${upper}`
+    };
+  }
+  if (kind === 11) {
+    const xSlope = randomNonZero(-4, 4);
+    const xIntercept = randInt(-4, 4);
+    const yCoefficient = randomNonZero(-3, 3);
+    const ySlope = randInt(-4, 4);
+    const at = randInt(-2, 3);
+    const xExpr = cleanExpression(`${leadingTerm(xSlope, "t")}${signedTerm(xIntercept)}`);
+    const yExpr = cleanExpression(`${leadingTerm(yCoefficient, "t^2")}${signedTerm(ySlope, "t")}`);
+    return {
+      label: "Generated Parametric Slope",
+      collegeboard: [`x(t)=${xExpr}`, `y(t)=${yExpr}`, { type: "mixed", parts: ["find ", { math: "\\frac{dy}{dx}" }, " at ", { math: `t=${at}` }] }],
+      desmos: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `\\frac{Y'(${at})}{X'(${at})}`],
+      answer: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `Y'(${at})/X'(${at})`],
+      answerVariants: [[`f(t)=${xExpr}`, `g(t)=${yExpr}`, `g'(${at})/f'(${at})`]],
+      signature: `param-slope:${xExpr}:${yExpr}:${at}`
+    };
+  }
+  if (kind === 12) {
+    const xCoefficient = randInt(1, 3);
+    const xSlope = randInt(1, 4);
+    const yCoefficient = randInt(1, 3);
+    const ySlope = randInt(1, 4);
+    const at = randInt(1, 3);
+    const xExpr = cleanExpression(`${leadingTerm(xCoefficient, "t^2")}${signedTerm(xSlope, "t")}`);
+    const yExpr = cleanExpression(`${leadingTerm(yCoefficient, "t^2")}${signedTerm(ySlope, "t")}`);
+    return {
+      label: "Generated Parametric Speed",
+      collegeboard: [`\\mathbf{r}(t)=\\langle${xExpr},${yExpr}\\rangle`, { type: "mixed", parts: ["speed at ", { math: `t=${at}` }] }],
+      desmos: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `\\sqrt{X'(${at})^2+Y'(${at})^2}`],
+      answer: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `sqrt(X'(${at})^2+Y'(${at})^2)`],
+      answerVariants: [[`f(t)=${xExpr}`, `g(t)=${yExpr}`, `sqrt(f'(${at})^2+g'(${at})^2)`]],
+      signature: `param-speed:${xExpr}:${yExpr}:${at}`
+    };
+  }
+  if (kind === 13) {
+    const expr = makePolynomial("x", 3);
+    const at = randInt(-3, 3);
+    return {
+      label: "Generated Tangent Line",
+      collegeboard: [`${fn}(x)=${expr}`, { type: "mixed", parts: ["tangent line to ", { math: fn }, " at ", { math: `x=${at}` }] }],
+      desmos: [`${fn}(x)=${expr}`, `y=${fn}(${at})+${fn}'(${at})(x${signedTerm(-at)})`],
+      answer: [`${fn}(x)=${expr}`, `y=${fn}(${at})+${fn}'(${at})(x${signedTerm(-at)})`],
+      signature: `tangent:${fn}:${expr}:${at}`
+    };
+  }
+  if (kind === 14) {
+    const xCoefficient = randInt(1, 4);
+    const yCoefficient = randInt(1, 3);
+    const upper = randInt(2, 5);
+    const xExpr = `${xCoefficient}t`;
+    const yExpr = `${yCoefficient}t^2`;
+    return {
+      label: "Generated Parametric Arc Length",
+      collegeboard: [`x(t)=${xExpr}`, `y(t)=${yExpr}`, { type: "mixed", parts: ["arc length for ", { math: `0\\le t\\le${upper}` }] }],
+      desmos: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `\\int_0^${upper}\\sqrt{X'(t)^2+Y'(t)^2}dt`],
+      answer: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `\\int_0^${upper}sqrt(X'(t)^2+Y'(t)^2)dt`],
+      answerVariants: [[`f(t)=${xExpr}`, `g(t)=${yExpr}`, `\\int_0^${upper}sqrt(f'(t)^2+g'(t)^2)dt`]],
+      signature: `param-arc:${xCoefficient}:${yCoefficient}:${upper}`
+    };
+  }
+  if (kind === 15) {
+    const series = pick([
+      { fn: "e^x", degree: 4, latexPolynomial: "1+x+\\frac{x^2}{2}+\\frac{x^3}{6}+\\frac{x^4}{24}", answerPolynomial: "1+x+x^2/2+x^3/6+x^4/24" },
+      { fn: "\\sin(x)", degree: 5, latexPolynomial: "x-\\frac{x^3}{6}+\\frac{x^5}{120}", answerPolynomial: "x-x^3/6+x^5/120" },
+      { fn: "\\cos(x)", degree: 4, latexPolynomial: "1-\\frac{x^2}{2}+\\frac{x^4}{24}", answerPolynomial: "1-x^2/2+x^4/24" },
+      { fn: "\\ln(1+x)", degree: 4, latexPolynomial: "x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\frac{x^4}{4}", answerPolynomial: "x-x^2/2+x^3/3-x^4/4" }
+    ]);
+    return {
+      label: "Generated Taylor Polynomial",
+      collegeboard: [`f(x)=${series.fn}`, { type: "mixed", parts: [`degree ${series.degree} Maclaurin polynomial for `, { math: "f" }] }],
+      desmos: [`f(x)=${series.fn}`, `P(x)=${series.latexPolynomial}`],
+      answer: [`f(x)=${series.fn}`, `P(x)=${series.answerPolynomial}`],
+      signature: `taylor:${series.fn}:${series.degree}`
+    };
+  }
+  const xCoefficient = randomNonZero(-3, 3);
+  const xSlope = randomNonZero(-4, 4);
+  const yCoefficient = randomNonZero(-3, 3);
+  const ySlope = randomNonZero(-4, 4);
+  const at = randInt(-2, 3);
+  const derivativeOrder = pick([1, 2]);
+  const quantity = derivativeOrder === 1 ? "velocity" : "acceleration";
+  const prime = derivativeOrder === 1 ? "'" : "''";
+  const xExpr = cleanExpression(`${leadingTerm(xCoefficient, "t^2")}${signedTerm(xSlope, "t")}`);
+  const yExpr = cleanExpression(`${leadingTerm(yCoefficient, "t^2")}${signedTerm(ySlope, "t")}`);
   return {
-    label: "Generated Parametric",
-    collegeboard: [`x=${a}\\cos(t)`, `y=${b}\\sin(t)`],
-    desmos: [`x(t)=${a}\\cos(t)`, `y(t)=${b}\\sin(t)`],
-    answer: [`x(t)=${a}cos(t)`, `y(t)=${b}sin(t)`],
-    signature: `param:${a}:${b}`
+    label: `Generated Vector ${derivativeOrder === 1 ? "Velocity" : "Acceleration"}`,
+    collegeboard: [`\\mathbf{r}(t)=\\langle${xExpr},${yExpr}\\rangle`, { type: "mixed", parts: [`${quantity} vector at `, { math: `t=${at}` }] }],
+    desmos: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `(X${prime}(${at}),Y${prime}(${at}))`],
+    answer: [`X(t)=${xExpr}`, `Y(t)=${yExpr}`, `(X${prime}(${at}),Y${prime}(${at}))`],
+    answerVariants: [[`f(t)=${xExpr}`, `g(t)=${yExpr}`, `(f${prime}(${at}),g${prime}(${at}))`]],
+    signature: `vector-${quantity}:${xExpr}:${yExpr}:${at}`
   };
 }
 
-function generateDesmosPrompt() {
-  return Math.random() < 0.62 ? generatedCalculusPrompt() : generatedSimplePrompt();
+function generateDesmosPrompt(maxDifficulty = 3) {
+  return Math.random() < 0.75 ? generatedCalculusPrompt(maxDifficulty) : generatedSimplePrompt();
 }
 
 const mathTypingTerms = [
@@ -593,80 +790,72 @@ const mathTypingTerms = [
   "↵"
 ];
 
+const macLetterKey = (key) => ({ key, label: key.toUpperCase(), kind: "letter" });
+const macSymbolKey = (key, label, alternate, options = {}) => ({
+  key,
+  label,
+  alternate,
+  kind: "symbol",
+  ...options
+});
+const macModifierKey = (key, label, options = {}) => ({ key, label, kind: "modifier", ...options });
+
 const mathTypingKeyboardRows = [
   [
-    { key: "`", label: "`" },
-    { key: "1", label: "1" },
-    { key: "2", label: "2" },
-    { key: "3", label: "3" },
-    { key: "4", label: "4" },
-    { key: "5", label: "5" },
-    { key: "6", label: "6" },
-    { key: "7", label: "7" },
-    { key: "8", label: "8" },
-    { key: "9", label: "9" },
-    { key: "0", label: "0" },
-    { key: "-", label: "-" },
-    { key: "=", label: "=" },
-    { key: "backspace", label: "backspace", wide: true }
+    macSymbolKey("`", "`", "~"),
+    macSymbolKey("1", "1", "!"),
+    macSymbolKey("2", "2", "@"),
+    macSymbolKey("3", "3", "#"),
+    macSymbolKey("4", "4", "$"),
+    macSymbolKey("5", "5", "%"),
+    macSymbolKey("6", "6", "^"),
+    macSymbolKey("7", "7", "&"),
+    macSymbolKey("8", "8", "*"),
+    macSymbolKey("9", "9", "("),
+    macSymbolKey("0", "0", ")"),
+    macSymbolKey("-", "-", "_"),
+    macSymbolKey("=", "=", "+"),
+    macModifierKey("backspace", "delete", { units: 1.5, align: "right" })
   ],
   [
-    { key: "tab", label: "tab", wide: true },
-    { key: "q", label: "q" },
-    { key: "w", label: "w" },
-    { key: "e", label: "e" },
-    { key: "r", label: "r" },
-    { key: "t", label: "t" },
-    { key: "y", label: "y" },
-    { key: "u", label: "u" },
-    { key: "i", label: "i" },
-    { key: "o", label: "o" },
-    { key: "p", label: "p" },
-    { key: "[", label: "[" },
-    { key: "]", label: "]" },
-    { key: "\\", label: "\\" }
+    macModifierKey("tab", "tab", { units: 1.5 }),
+    ..."qwertyuiop".split("").map(macLetterKey),
+    macSymbolKey("[", "[", "{"),
+    macSymbolKey("]", "]", "}"),
+    macSymbolKey("\\", "\\", "|", { units: 1.5 })
   ],
   [
-    { key: "caps", label: "caps", wide: true },
-    { key: "a", label: "a" },
-    { key: "s", label: "s" },
-    { key: "d", label: "d" },
-    { key: "f", label: "f" },
-    { key: "g", label: "g" },
-    { key: "h", label: "h" },
-    { key: "j", label: "j" },
-    { key: "k", label: "k" },
-    { key: "l", label: "l" },
-    { key: ";", label: ";" },
-    { key: "'", label: "'" },
-    { key: "enter", label: "enter", wide: true }
+    macModifierKey("caps", "caps lock", { units: 1.75 }),
+    ..."asdfghjkl".split("").map(macLetterKey),
+    macSymbolKey(";", ";", ":"),
+    macSymbolKey("'", "'", "\""),
+    macModifierKey("enter", "return", { units: 2.25, align: "right" })
   ],
   [
-    { key: "shift", label: "shift", wide: true },
-    { key: "z", label: "z" },
-    { key: "x", label: "x" },
-    { key: "c", label: "c" },
-    { key: "v", label: "v" },
-    { key: "b", label: "b" },
-    { key: "n", label: "n" },
-    { key: "m", label: "m" },
-    { key: ",", label: "," },
-    { key: ".", label: "." },
-    { key: "/", label: "/" },
-    { key: "shift", label: "shift", wide: true }
+    macModifierKey("shift", "shift", { units: 2.25 }),
+    ..."zxcvbnm".split("").map(macLetterKey),
+    macSymbolKey(",", ",", "<"),
+    macSymbolKey(".", ".", ">"),
+    macSymbolKey("/", "/", "?"),
+    macModifierKey("shift", "shift", { units: 2.75, align: "right" })
   ],
   [
-    { key: "ctrl", label: "ctrl", wide: true },
-    { key: "alt", label: "alt", wide: true },
-    { key: "space", label: "space", extraWide: true },
-    { key: "alt", label: "alt", wide: true },
-    { key: "ctrl", label: "ctrl", wide: true }
-  ],
-  [
-    { key: "arrowleft", label: "←" },
-    { key: "arrowup", label: "↑" },
-    { key: "arrowdown", label: "↓" },
-    { key: "arrowright", label: "→" }
+    macModifierKey("fn", "fn", { symbol: "◎" }),
+    macModifierKey("control", "control", { symbol: "⌃" }),
+    macModifierKey("option", "option", { symbol: "⌥" }),
+    macModifierKey("command", "command", { units: 1.25, symbol: "⌘" }),
+    { key: "space", label: "", units: 5.25, kind: "space" },
+    macModifierKey("command", "command", { units: 1.25, symbol: "⌘" }),
+    macModifierKey("option", "option", { symbol: "⌥" }),
+    {
+      units: 3,
+      arrowCluster: [
+        { key: "arrowup", label: "↑", kind: "arrow" },
+        { key: "arrowleft", label: "←", kind: "arrow" },
+        { key: "arrowdown", label: "↓", kind: "arrow" },
+        { key: "arrowright", label: "→", kind: "arrow" }
+      ]
+    }
   ]
 ];
 
@@ -676,6 +865,132 @@ const mathTypingArrowKeyChars = {
   ArrowUp: "↑",
   ArrowDown: "↓"
 };
+
+function studyVideoEmbedUrl(videoId, autoplay = false) {
+  const params = new URLSearchParams({
+    rel: "0",
+    playsinline: "1",
+    enablejsapi: "1"
+  });
+  if (autoplay) params.set("autoplay", "1");
+  if (window.location.protocol !== "file:") params.set("origin", window.location.origin);
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+}
+
+function setStudyVideo(index, options = {}) {
+  if (!elements.studyVideoPlayer || !elements.studyVideoWatch || !studyVideos.length) return;
+  const nextIndex = clamp(Math.trunc(index) || 0, 0, studyVideos.length - 1);
+  const video = studyVideos[nextIndex];
+  const autoplay = Boolean(options.autoplay);
+  studyVideoState.selectedIndex = nextIndex;
+  elements.studyVideoWatch.hidden = false;
+
+  const currentSource = elements.studyVideoPlayer.getAttribute("src") || "";
+  if (autoplay || !currentSource.includes(`/embed/${video.id}`)) {
+    elements.studyVideoPlayer.src = studyVideoEmbedUrl(video.id, autoplay);
+  }
+  elements.studyVideoPlayer.dataset.videoId = video.id;
+  elements.studyVideoPlayer.title = `${video.title} by 3Blue1Brown`;
+
+  if (elements.studyVideoChapter) elements.studyVideoChapter.textContent = `Chapter ${nextIndex + 1} of ${studyVideos.length}`;
+  if (elements.studyVideoTitle) elements.studyVideoTitle.textContent = video.title;
+
+  const videoButtons = elements.studyVideoGrid
+    ? [...elements.studyVideoGrid.querySelectorAll("[data-study-video-index]")]
+    : [];
+  videoButtons.forEach((button, buttonIndex) => {
+    const active = buttonIndex === nextIndex;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    if (active) {
+      button.setAttribute("aria-current", "true");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+
+  if (options.scroll) {
+    elements.studyVideoWatch.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+}
+
+function pauseStudyVideoPlayback() {
+  if (!elements.studyVideoPlayer || !elements.studyVideoPlayer.contentWindow) return;
+  elements.studyVideoPlayer.contentWindow.postMessage(
+    JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+    "https://www.youtube-nocookie.com"
+  );
+}
+
+function closeStudyVideo(options = {}) {
+  if (!elements.studyVideoPlayer || !elements.studyVideoWatch) return;
+  const previousIndex = studyVideoState.selectedIndex;
+  pauseStudyVideoPlayback();
+  elements.studyVideoPlayer.removeAttribute("src");
+  delete elements.studyVideoPlayer.dataset.videoId;
+  elements.studyVideoWatch.hidden = true;
+  studyVideoState.selectedIndex = null;
+
+  const videoButtons = elements.studyVideoGrid
+    ? [...elements.studyVideoGrid.querySelectorAll("[data-study-video-index]")]
+    : [];
+  videoButtons.forEach((button) => {
+    button.classList.remove("active");
+    button.setAttribute("aria-pressed", "false");
+    button.removeAttribute("aria-current");
+  });
+
+  if (options.focus && previousIndex !== null && videoButtons[previousIndex]) {
+    videoButtons[previousIndex].focus();
+  }
+}
+
+function initStudyVideoGrid() {
+  if (!elements.studyVideoGrid || !elements.studyVideoPlayer) return;
+  elements.studyVideoGrid.replaceChildren();
+
+  studyVideos.forEach((video, index) => {
+    const button = document.createElement("button");
+    const thumbnail = document.createElement("span");
+    const image = document.createElement("img");
+    const playIcon = document.createElement("span");
+    const details = document.createElement("span");
+    const copy = document.createElement("span");
+    const chapter = document.createElement("small");
+    const title = document.createElement("strong");
+
+    button.type = "button";
+    button.className = "study-video-card";
+    button.dataset.studyVideoIndex = String(index);
+    button.setAttribute("aria-label", `Play chapter ${index + 1}: ${video.title}`);
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => setStudyVideo(index, { autoplay: true, scroll: true }));
+
+    thumbnail.className = "study-video-thumbnail";
+    image.src = `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`;
+    image.alt = "";
+    image.loading = index === 0 ? "eager" : "lazy";
+    image.decoding = "async";
+    playIcon.className = "study-video-play-icon";
+    playIcon.setAttribute("aria-hidden", "true");
+    playIcon.textContent = "▶";
+    thumbnail.append(image, playIcon);
+
+    details.className = "study-video-card-details";
+    copy.className = "study-video-card-copy";
+    title.textContent = video.title;
+    chapter.textContent = `Essence of Calculus | Chapter ${index + 1}`;
+    copy.append(title, chapter);
+    details.appendChild(copy);
+
+    button.append(thumbnail, details);
+    elements.studyVideoGrid.appendChild(button);
+  });
+
+  if (elements.studyVideoClose) {
+    elements.studyVideoClose.addEventListener("click", () => closeStudyVideo({ focus: true }));
+  }
+}
 
 const mathTypingSpecialKeyChars = {
   ...mathTypingArrowKeyChars,
@@ -1007,21 +1322,10 @@ function renderDataLatex(root = document, options = {}) {
 
 function renderDesmosGuideMath(root) {
   root.querySelectorAll("[data-latex]").forEach((node) => {
+    if (node.dataset.mathRendered === "true") return;
     const rendered = renderStaticMath(node, node.dataset.latex, true);
     rendered.dataset.mathRendered = "true";
   });
-}
-
-function setDesmosGuideVisible(visible) {
-  elements.desmosGuide.hidden = !visible;
-  elements.desmosGuideToggle.setAttribute("aria-expanded", String(visible));
-  document.body.classList.toggle("guide-open", visible);
-  if (visible) {
-    window.requestAnimationFrame(() => {
-      renderDesmosGuideMath(elements.desmosGuide);
-      elements.desmosGuideClose.focus();
-    });
-  }
 }
 
 function initEmbeddedDesmos() {
@@ -1152,7 +1456,7 @@ function canonicalizeSimpleFractions(value) {
 }
 
 function normalizeDesmosInput(value) {
-  return canonicalizeSimpleFractions(omitUnityCoefficients(desmosLatexToText(value)
+  let text = omitUnityCoefficients(desmosLatexToText(value)
     .toLowerCase()
     .replace(/\s+/g, "")
     .replace(/\u03c0/g, "pi")
@@ -1163,11 +1467,19 @@ function normalizeDesmosInput(value) {
     .replace(/\u00f7/g, "/")
     .replace(/\u00d7/g, "*")
     .replace(/[{}]/g, "")
-    .replace(/\*/g, "")))
-    .replace(/abs\(([^()]+)\)/g, "abs$1")
-    .replace(/\|([^|]+)\|/g, "abs$1")
-    .replace(/\(([^()+\-*/]+)\)/g, "$1")
-    .replace(/[()]/g, "");
+    .replace(/\*/g, ""));
+
+  text = text.replace(/\|([^|]+)\|/g, "abs($1)");
+
+  let previous = "";
+  while (text !== previous) {
+    previous = text;
+    text = text
+      .replace(/(?<![a-z])\(([a-z](?:'+)?\([^()]+\))\)/g, "$1")
+      .replace(/(?<![a-z])\(([-+]?\d+(?:\.\d+)?|[a-z][a-z0-9_]*(?:\^-?\d+(?:\.\d+)?)?)\)/g, "$1");
+  }
+
+  return canonicalizeSimpleFractions(text);
 }
 
 function desmosLineList(value) {
@@ -1184,16 +1496,50 @@ function normalizeDesmosLines(value) {
 
 function desmosLinesMatch(typedLines, expectedLines) {
   if (typedLines.length !== expectedLines.length) return false;
-  return expectedLines.every((line, index) => typedLines[index] === line);
+  const remaining = [...typedLines];
+  return expectedLines.every((line) => {
+    const matchIndex = remaining.indexOf(line);
+    if (matchIndex < 0) return false;
+    remaining.splice(matchIndex, 1);
+    return true;
+  });
+}
+
+function desmosAnswerVariants(prompt) {
+  return [prompt.answer, ...(prompt.answerVariants || [])];
+}
+
+const intermediateStaticDesmosLabels = new Set([
+  "Antiderivative",
+  "Accumulation Function",
+  "Net Change",
+  "Function Area",
+  "Polar Area",
+  "Average Value"
+]);
+
+function desmosDifficultyForScore(score) {
+  if (score >= 10) return 3;
+  if (score >= 5) return 2;
+  return 1;
+}
+
+function staticDesmosPromptDifficulty(prompt) {
+  return intermediateStaticDesmosLabels.has(prompt.label) ? 2 : 1;
 }
 
 function pickDesmosPrompt() {
-  let prompt = Math.random() < 0.9 ? generateDesmosPrompt() : pick(desmosPrompts);
-  if (desmosPrompts.length > 1) {
+  const maxDifficulty = desmosDifficultyForScore(desmosState.score);
+  const staticCandidates = desmosPrompts.filter((prompt) => staticDesmosPromptDifficulty(prompt) <= maxDifficulty);
+  const createPrompt = () => Math.random() < 0.9
+    ? generateDesmosPrompt(maxDifficulty)
+    : pick(staticCandidates);
+  let prompt = createPrompt();
+  if (staticCandidates.length > 1) {
     let guard = 0;
     while ((prompt === desmosState.current || (desmosState.current && prompt.signature === desmosState.current.signature)) && guard < 12) {
       guard += 1;
-      prompt = Math.random() < 0.9 ? generateDesmosPrompt() : pick(desmosPrompts);
+      prompt = createPrompt();
     }
   }
   return prompt;
@@ -1213,9 +1559,26 @@ function clearPendingDesmosReady() {
   }
 }
 
+function clearDesmosFeedbackEffect() {
+  if (desmosState.feedbackEffectTimer) {
+    window.clearTimeout(desmosState.feedbackEffectTimer);
+    desmosState.feedbackEffectTimer = 0;
+  }
+
+  if (elements.desmosCalculatorStage) {
+    elements.desmosCalculatorStage.classList.remove("feedback-good");
+  }
+  if (elements.desmosScore) elements.desmosScore.classList.remove("score-bump");
+  if (elements.desmosFeedbackEffect) {
+    elements.desmosFeedbackEffect.className = "desmos-feedback-effect";
+    elements.desmosFeedbackEffect.replaceChildren();
+  }
+}
+
 function clearPendingDesmosTimers() {
   clearPendingDesmosAdvance();
   clearPendingDesmosReady();
+  clearDesmosFeedbackEffect();
 }
 
 function nextDesmosPrompt() {
@@ -1281,7 +1644,8 @@ function updateDesmosScoreView() {
   if (!elements.desmosScore) return;
   const visible = desmosSettings.timebar && desmosState.mode === "speedrun";
   elements.desmosScore.hidden = !visible;
-  elements.desmosScore.textContent = `Score: ${desmosState.score}`;
+  if (elements.desmosScoreValue) elements.desmosScoreValue.textContent = String(desmosState.score);
+  elements.desmosScore.setAttribute("aria-label", `Score ${desmosState.score}`);
 }
 
 function flashDesmosTime() {
@@ -1589,7 +1953,7 @@ function ensureDesmosPromptCardsFilled(prompt = desmosState.current) {
 }
 
 function renderDesmosIntroPrompt() {
-  const labels = ["collegeboard text", "desmos text"];
+  const labels = ["Problem Here", "desmos text"];
   elements.desmosPromptFonts = getDesmosPromptCards().map((card, index) => {
     const node = createDesmosPromptFontNode();
     node.textContent = labels[index] || "";
@@ -1650,33 +2014,115 @@ function initDesmosPromptTooltips() {
   });
 }
 
-function setDesmosFeedback(message, tone = "") {
-  elements.desmosFeedback.textContent = message;
-  elements.desmosFeedback.className = `desmos-result-mark ${tone}`.trim();
+function setDesmosFeedback(message, tone = "", detail = "") {
+  const feedback = elements.desmosFeedback;
+  const visible = Boolean(message);
+  feedback.hidden = !visible;
+  feedback.className = `desmos-result-mark ${tone}`.trim();
+
+  if (!visible) {
+    feedback.replaceChildren();
+    return;
+  }
+
+  const icon = document.createElement("span");
+  icon.className = "desmos-result-icon";
+  icon.setAttribute("aria-hidden", "true");
+  if (tone === "good") icon.textContent = "✓";
+  if (tone === "bad") icon.textContent = "×";
+
+  const copy = document.createElement("span");
+  copy.className = "desmos-result-copy";
+
+  const title = document.createElement("strong");
+  title.textContent = message;
+  copy.appendChild(title);
+
+  if (detail) {
+    const description = document.createElement("span");
+    description.textContent = detail;
+    copy.appendChild(description);
+  }
+
+  feedback.replaceChildren(icon, copy);
+}
+
+function triggerDesmosCorrectEffect(message, detail = "") {
+  const effect = elements.desmosFeedbackEffect;
+  const stage = elements.desmosCalculatorStage;
+  if (!effect || !stage) return;
+
+  clearDesmosFeedbackEffect();
+
+  const card = document.createElement("div");
+  card.className = "desmos-effect-card";
+
+  const icon = document.createElement("span");
+  icon.className = "desmos-effect-icon";
+  icon.textContent = "✓";
+
+  const copy = document.createElement("span");
+  copy.className = "desmos-effect-copy";
+
+  const title = document.createElement("strong");
+  title.textContent = message;
+  copy.appendChild(title);
+
+  if (detail) {
+    const description = document.createElement("span");
+    description.textContent = detail;
+    copy.appendChild(description);
+  }
+
+  card.append(icon, copy);
+  effect.replaceChildren(card);
+  effect.classList.add("good", "active");
+  void stage.offsetWidth;
+  stage.classList.add("feedback-good");
+
+  desmosState.feedbackEffectTimer = window.setTimeout(() => {
+    desmosState.feedbackEffectTimer = 0;
+    stage.classList.remove("feedback-good");
+    effect.className = "desmos-feedback-effect";
+    effect.replaceChildren();
+  }, 780);
+}
+
+function bumpDesmosScore() {
+  if (!elements.desmosScore) return;
+  elements.desmosScore.classList.remove("score-bump");
+  void elements.desmosScore.offsetWidth;
+  elements.desmosScore.classList.add("score-bump");
 }
 
 function checkDesmosLiveAnswer() {
   if (!desmosState.running || !desmosState.current || !desmosState.inputEnabled || desmosState.locked || desmosState.transitioning) return;
   const typed = normalizeDesmosLines(desmosState.userLatex);
   if (!typed.length) {
+    clearDesmosFeedbackEffect();
     setDesmosFeedback("");
     return;
   }
 
-  const expected = normalizeDesmosLines(desmosState.current.answer);
-  if (desmosLinesMatch(typed, expected)) {
+  const matchesExpected = desmosAnswerVariants(desmosState.current)
+    .some((answer) => desmosLinesMatch(typed, normalizeDesmosLines(answer)));
+  if (matchesExpected) {
     desmosState.locked = true;
     desmosState.score += 1;
     if (desmosSettings.timebar) desmosState.time = clamp(desmosState.time + desmosSpeedrunTiming.bonus, 0, desmosState.maxTime);
     updateDesmosScoreView();
-    setDesmosFeedback("✓ correct", "good");
-    flashDesmosTime();
+    const reward = desmosSettings.timebar ? `+${desmosSpeedrunTiming.bonus}s` : "+1 point";
+    setDesmosFeedback("Correct", "good", reward);
+    triggerDesmosCorrectEffect("Correct", reward);
+    bumpDesmosScore();
+    if (desmosSettings.timebar) flashDesmosTime();
     spawnFormulaBurst(18, true);
     scheduleNextDesmosPrompt();
     return;
   }
 
-  setDesmosFeedback("×", "bad");
+  clearDesmosFeedbackEffect();
+  setDesmosFeedback("");
 }
 
 function startDesmosSpeedrun() {
@@ -1718,7 +2164,8 @@ function endDesmosSpeedrun(options = {}) {
 }
 
 function setDesmosMode(mode) {
-  const nextMode = ["speedrun", "typing", "settings"].includes(mode) ? mode : "speedrun";
+  const nextMode = ["speedrun", "typing", "tutorial", "settings"].includes(mode) ? mode : "speedrun";
+  const previousMode = desmosState.mode;
   desmosState.mode = nextMode;
 
   elements.desmosModeButtons.forEach((button) => {
@@ -1734,42 +2181,71 @@ function setDesmosMode(mode) {
   });
 
   if (nextMode !== "speedrun" && desmosState.running) endDesmosSpeedrun();
+  if (previousMode === "typing" && nextMode !== "typing" && mathTypingState.startedAt) resetMathTypingGame();
 
   if (nextMode === "typing") {
     window.requestAnimationFrame(() => {
       if (elements.mathTypingInput) elements.mathTypingInput.focus();
       updateMathTypingKeyboard();
+      updateMathTypingViewport();
       updateMathTypingCaret();
     });
+    return;
+  }
+
+  if (nextMode === "tutorial") {
+    window.requestAnimationFrame(() => renderDesmosGuideMath(elements.desmosGuide));
     return;
   }
 
   if (nextMode === "speedrun") window.setTimeout(initEmbeddedDesmos, 0);
 }
 
-function setStudyMode(mode) {
-  const nextMode = mode === "ap" ? "ap" : "study";
+function getMathTypingInitialWordCount() {
+  if (mathTypingSettings.mode === "words") return mathTypingSettings.amount;
+  return Math.max(mathTypingTimedBufferSize, mathTypingSettings.amount * 2);
+}
 
-  elements.studyModeButtons.forEach((button) => {
-    const active = button.dataset.studyMode === nextMode;
+function syncMathTypingConfig() {
+  elements.mathTypingModeButtons.forEach((button) => {
+    const active = button.dataset.mathTypingMode === mathTypingSettings.mode;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
 
-  elements.studyModePanels.forEach((panel) => {
-    const active = panel.dataset.studyPanel === nextMode;
-    panel.hidden = !active;
-    panel.classList.toggle("active", active);
+  elements.mathTypingAmountButtons.forEach((button) => {
+    const amount = Number(button.dataset.mathTypingAmount);
+    const active = amount === mathTypingSettings.amount;
+    const unit = mathTypingSettings.mode === "time" ? "seconds" : "words";
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.setAttribute("aria-label", `${amount} ${unit}`);
   });
 
-  elements.navAP.classList.toggle("active", false);
-  elements.navStudy.classList.toggle("active", elements.studyPage.classList.contains("active"));
-  if (nextMode === "study") renderDataLatex(elements.studyPage, { skipHidden: true });
-  elements.studyPage.scrollTop = 0;
+  const amountGroup = elements.mathTypingConfig
+    ? elements.mathTypingConfig.querySelector(".math-typing-amounts")
+    : null;
+  if (amountGroup) {
+    amountGroup.setAttribute("aria-label", mathTypingSettings.mode === "time" ? "Time in seconds" : "Number of words");
+  }
+}
+
+function setMathTypingConfig(nextSettings) {
+  const nextMode = ["time", "words"].includes(nextSettings.mode) ? nextSettings.mode : mathTypingSettings.mode;
+  const requestedAmount = Number(nextSettings.amount);
+  const nextAmount = mathTypingAmounts.includes(requestedAmount) ? requestedAmount : mathTypingSettings.amount;
+  if (nextMode === mathTypingSettings.mode && nextAmount === mathTypingSettings.amount) return;
+
+  mathTypingSettings.mode = nextMode;
+  mathTypingSettings.amount = nextAmount;
+  localStorage.setItem("bc-blitz-math-typing-mode", nextMode);
+  localStorage.setItem("bc-blitz-math-typing-amount", String(nextAmount));
+  syncMathTypingConfig();
+  restartMathTypingGame();
 }
 
 function buildMathTypingWords(count = null) {
-  const targetCount = count || mathTypingWordCount;
+  const targetCount = count === null ? getMathTypingInitialWordCount() : count;
   const words = [];
   let previous = "";
   for (let i = 0; i < targetCount; i += 1) {
@@ -1795,10 +2271,74 @@ function buildMathTypingWords(count = null) {
   return words;
 }
 
+function appendMathTypingWords(count = 48) {
+  const nextWords = buildMathTypingWords(count);
+  const previous = mathTypingState.words[mathTypingState.words.length - 1];
+  if (nextWords[0] === previous) {
+    const replacement = mathTypingTerms.find((term) => term !== previous);
+    if (replacement) nextWords[0] = replacement;
+  }
+  mathTypingState.words.push(...nextWords);
+}
+
+function ensureMathTypingWordBuffer() {
+  if (mathTypingSettings.mode !== "time") return;
+  if (mathTypingState.words.length - mathTypingState.index < 24) appendMathTypingWords();
+}
+
+function stopMathTypingTimer() {
+  if (!mathTypingState.timerId) return;
+  window.clearInterval(mathTypingState.timerId);
+  mathTypingState.timerId = 0;
+}
+
+function getMathTypingRemainingMs() {
+  if (mathTypingSettings.mode !== "time") return 0;
+  if (!mathTypingState.startedAt) return mathTypingSettings.amount * 1000;
+  const now = mathTypingState.completedAt || performance.now();
+  return Math.max(0, mathTypingState.deadline - now);
+}
+
+function finishMathTypingGame(completedAt = performance.now()) {
+  if (mathTypingState.finished) return;
+
+  if (mathTypingState.typed) {
+    mathTypingState.typedTerms[mathTypingState.index] = mathTypingState.typed;
+  }
+  mathTypingState.finished = true;
+  mathTypingState.completedAt = completedAt;
+  stopMathTypingTimer();
+  renderMathTypingGame();
+  showMathTypingResult();
+}
+
+function updateMathTypingTimer() {
+  if (mathTypingState.finished || mathTypingSettings.mode !== "time") {
+    stopMathTypingTimer();
+    return;
+  }
+  if (getMathTypingRemainingMs() <= 0) {
+    finishMathTypingGame(mathTypingState.deadline);
+    return;
+  }
+  updateMathTypingStats();
+}
+
+function ensureMathTypingStarted() {
+  if (mathTypingState.startedAt || mathTypingState.finished) return;
+  mathTypingState.startedAt = performance.now();
+  if (mathTypingSettings.mode === "time") {
+    mathTypingState.deadline = mathTypingState.startedAt + mathTypingSettings.amount * 1000;
+    mathTypingState.timerId = window.setInterval(updateMathTypingTimer, 100);
+  }
+  updateMathTypingStats();
+}
+
 function resetMathTypingGame() {
+  stopMathTypingTimer();
   if (elements.mathTypingTest) elements.mathTypingTest.classList.remove("result-visible");
   if (elements.mathTypingResult) elements.mathTypingResult.hidden = true;
-  mathTypingState.words = buildMathTypingWords();
+  mathTypingState.words = buildMathTypingWords(getMathTypingInitialWordCount());
   mathTypingState.results = [];
   mathTypingState.typedTerms = [];
   mathTypingState.index = 0;
@@ -1811,6 +2351,10 @@ function resetMathTypingGame() {
   mathTypingState.finished = false;
   mathTypingState.resultVisible = false;
   mathTypingState.latestResult = null;
+  mathTypingState.deadline = 0;
+  mathTypingState.timerId = 0;
+  mathTypingState.viewportLine = 0;
+  mathTypingState.viewportOffset = 0;
   mathTypingState.caretX = 0;
   mathTypingState.caretY = 0;
   mathTypingState.caretHeight = 22;
@@ -1819,6 +2363,9 @@ function resetMathTypingGame() {
     elements.mathTypingInput.disabled = false;
     elements.mathTypingInput.value = "";
   }
+  if (elements.mathTypingWords) elements.mathTypingWords.style.transform = "translate3d(0, 0, 0)";
+  if (elements.mathTypingWordsWrapper) elements.mathTypingWordsWrapper.style.height = "";
+  syncMathTypingConfig();
   renderMathTypingGame();
 }
 
@@ -1834,7 +2381,8 @@ function restartMathTypingGame() {
 function getMathTypingElapsedMs() {
   if (!mathTypingState.startedAt) return 0;
   const endTime = mathTypingState.completedAt || performance.now();
-  return Math.max(1, endTime - mathTypingState.startedAt);
+  const boundedEnd = mathTypingState.deadline ? Math.min(endTime, mathTypingState.deadline) : endTime;
+  return Math.max(1, boundedEnd - mathTypingState.startedAt);
 }
 
 function getMathTypingCharStats() {
@@ -1873,6 +2421,23 @@ function getMathTypingResult() {
     key: `${charStats.correct}/${charStats.incorrect}/${charStats.missing}/${charStats.extra}`,
     charStats
   };
+}
+
+function updateMathTypingStats() {
+  const result = getMathTypingResult();
+  const progress = mathTypingSettings.mode === "time"
+    ? `${Math.ceil(getMathTypingRemainingMs() / 1000)}s`
+    : `${Math.min(mathTypingState.index, mathTypingSettings.amount)}/${mathTypingSettings.amount}`;
+
+  if (elements.mathTypingWpm) elements.mathTypingWpm.textContent = String(result.wpm);
+  if (elements.mathTypingAccuracy) elements.mathTypingAccuracy.textContent = String(result.accuracy);
+  if (elements.mathTypingProgress) elements.mathTypingProgress.textContent = progress;
+  if (elements.mathTypingTest) {
+    elements.mathTypingTest.setAttribute(
+      "aria-label",
+      `Math typing practice, ${result.wpm} words per minute, ${result.accuracy} percent accuracy, ${progress}`
+    );
+  }
 }
 
 function recordMathTypingKeys(nextValue) {
@@ -1923,13 +2488,13 @@ function completeMathTypingTerm(rawTyped, options = {}) {
 
   if (elements.mathTypingInput) elements.mathTypingInput.value = "";
 
-  if (mathTypingState.index >= mathTypingState.words.length) {
-    mathTypingState.finished = true;
-    mathTypingState.completedAt = performance.now();
+  if (mathTypingSettings.mode === "words" && mathTypingState.index >= mathTypingSettings.amount) {
+    finishMathTypingGame();
+    return;
   }
 
+  ensureMathTypingWordBuffer();
   renderMathTypingGame();
-  if (mathTypingState.finished) showMathTypingResult();
 }
 
 function appendMathTypingLetter(word, char, className = "") {
@@ -1992,7 +2557,12 @@ function renderMathTypingWord(term, index) {
 function renderMathTypingResultWords() {
   if (!elements.mathTypingResultWords) return;
   elements.mathTypingResultWords.innerHTML = "";
-  mathTypingState.words.forEach((term, index) => {
+  const hasPartialWord = Boolean(mathTypingState.typedTerms[mathTypingState.index] || mathTypingState.typed);
+  const resultWordCount = mathTypingSettings.mode === "words"
+    ? Math.min(mathTypingState.index, mathTypingSettings.amount)
+    : Math.min(mathTypingState.words.length, mathTypingState.index + (hasPartialWord ? 1 : 0));
+
+  mathTypingState.words.slice(0, resultWordCount).forEach((term, index) => {
     elements.mathTypingResultWords.appendChild(renderMathTypingWord(term, index));
   });
 }
@@ -2001,26 +2571,65 @@ function ensureMathTypingKeyboard() {
   if (!elements.mathTypingKeyboard || elements.mathTypingKeyboard.dataset.ready === "true") return;
 
   elements.mathTypingKeyboard.innerHTML = "";
+
+  const createKeyNode = (keyItem) => {
+    const keyNode = document.createElement("span");
+    keyNode.className = "math-key";
+    keyNode.dataset.key = keyItem.key;
+    keyNode.style.setProperty("--key-units", String(keyItem.units || 1));
+    if (keyItem.kind) keyNode.classList.add(`${keyItem.kind}-key`);
+    if (keyItem.alternate) keyNode.classList.add("has-alternate");
+    if (keyItem.align) keyNode.classList.add(`label-${keyItem.align}`);
+
+    const label = document.createElement("span");
+    label.className = "math-key-label";
+    label.textContent = keyItem.label;
+
+    if (keyItem.alternate) {
+      const alternate = document.createElement("span");
+      alternate.className = "math-key-alternate";
+      alternate.textContent = keyItem.alternate;
+      keyNode.appendChild(alternate);
+    }
+
+    if (keyItem.symbol) {
+      const symbol = document.createElement("span");
+      symbol.className = "math-key-symbol";
+      symbol.textContent = keyItem.symbol;
+      keyNode.appendChild(symbol);
+    }
+
+    const hint = document.createElement("span");
+    hint.className = "math-key-hint";
+
+    keyNode.append(label, hint);
+    return keyNode;
+  };
+
   mathTypingKeyboardRows.forEach((row) => {
     const rowNode = document.createElement("div");
     rowNode.className = "math-keyboard-row";
 
     row.forEach((keyItem) => {
-      const keyNode = document.createElement("span");
-      keyNode.className = "math-key";
-      keyNode.dataset.key = keyItem.key;
-      if (keyItem.wide) keyNode.classList.add("wide");
-      if (keyItem.extraWide) keyNode.classList.add("extra-wide");
+      if (keyItem.arrowCluster) {
+        const clusterNode = document.createElement("span");
+        clusterNode.className = "math-arrow-cluster";
+        clusterNode.style.setProperty("--key-units", String(keyItem.units || 3));
+        keyItem.arrowCluster.forEach((arrowKey) => clusterNode.appendChild(createKeyNode(arrowKey)));
+        rowNode.appendChild(clusterNode);
+        return;
+      }
 
-      const label = document.createElement("span");
-      label.className = "math-key-label";
-      label.textContent = keyItem.label;
+      if (keyItem.stack) {
+        const stackNode = document.createElement("span");
+        stackNode.className = "math-key-stack";
+        stackNode.style.setProperty("--key-units", String(keyItem.units || 1));
+        keyItem.stack.forEach((stackedKey) => stackNode.appendChild(createKeyNode(stackedKey)));
+        rowNode.appendChild(stackNode);
+        return;
+      }
 
-      const hint = document.createElement("span");
-      hint.className = "math-key-hint";
-
-      keyNode.append(label, hint);
-      rowNode.appendChild(keyNode);
+      rowNode.appendChild(createKeyNode(keyItem));
     });
 
     elements.mathTypingKeyboard.appendChild(rowNode);
@@ -2116,7 +2725,7 @@ function handleMathTypingSpecialKey(event) {
 
   const expected = mathTypingState.words[mathTypingState.index] || "";
   const nextChar = expected[mathTypingState.typed.length] || "";
-  if (!mathTypingState.startedAt) mathTypingState.startedAt = performance.now();
+  ensureMathTypingStarted();
 
   if (nextChar !== specialChar) {
     mathTypingState.incorrectKeys += 1;
@@ -2196,8 +2805,38 @@ function updateMathTypingCaret() {
 }
 
 function updateMathTypingViewport() {
-  if (!elements.mathTypingWords) return;
-  elements.mathTypingWords.style.transform = "translateY(0)";
+  const words = elements.mathTypingWords;
+  const wrapper = elements.mathTypingWordsWrapper;
+  if (!words || !wrapper || mathTypingState.resultVisible) return;
+
+  const wordNodes = [...words.querySelectorAll(".math-type-word")];
+  const activeWord = words.querySelector(".math-type-word.active");
+  if (!wordNodes.length || !activeWord) return;
+
+  const rowTolerance = 5;
+  const lineTops = [];
+  wordNodes.forEach((word) => {
+    const top = word.offsetTop;
+    if (!lineTops.some((lineTop) => Math.abs(lineTop - top) <= rowTolerance)) lineTops.push(top);
+  });
+  lineTops.sort((a, b) => a - b);
+
+  const activeLine = Math.max(0, lineTops.findIndex((lineTop) => Math.abs(lineTop - activeWord.offsetTop) <= rowTolerance));
+  const viewportLine = Math.max(0, activeLine - 1);
+  const firstLineTop = lineTops[0] || 0;
+  const targetLineTop = lineTops[viewportLine] === undefined ? firstLineTop : lineTops[viewportLine];
+  const activeStyle = window.getComputedStyle(activeWord);
+  const fallbackLineHeight = activeWord.offsetHeight
+    + (Number.parseFloat(activeStyle.marginTop) || 0)
+    + (Number.parseFloat(activeStyle.marginBottom) || 0);
+  const measuredLineHeight = lineTops.length > 1 ? lineTops[1] - lineTops[0] : fallbackLineHeight;
+  const lineHeight = Math.max(1, measuredLineHeight || fallbackLineHeight);
+  const viewportOffset = Math.max(0, targetLineTop - firstLineTop);
+
+  wrapper.style.height = `${Math.ceil(lineHeight * 3)}px`;
+  words.style.transform = `translate3d(0, ${-Math.round(viewportOffset)}px, 0)`;
+  mathTypingState.viewportLine = viewportLine;
+  mathTypingState.viewportOffset = viewportOffset;
 }
 
 function renderMathTypingGame() {
@@ -2219,14 +2858,7 @@ function renderMathTypingGame() {
   }
   elements.mathTypingWords.appendChild(caret);
 
-  const result = getMathTypingResult();
-
-  if (elements.mathTypingWpm) elements.mathTypingWpm.textContent = String(result.wpm);
-  if (elements.mathTypingAccuracy) elements.mathTypingAccuracy.textContent = String(result.accuracy);
-  if (elements.mathTypingProgress) {
-    elements.mathTypingProgress.textContent = `${Math.min(mathTypingState.index, mathTypingState.words.length)}/${mathTypingState.words.length}`;
-  }
-
+  updateMathTypingStats();
   updateMathTypingKeyboard();
   window.requestAnimationFrame(() => {
     updateMathTypingViewport();
@@ -2236,9 +2868,9 @@ function renderMathTypingGame() {
 
 function handleMathTypingInput() {
   if (!elements.mathTypingInput || mathTypingState.finished) return;
-  if (!mathTypingState.startedAt && elements.mathTypingInput.value) mathTypingState.startedAt = performance.now();
 
   const value = elements.mathTypingInput.value;
+  if (value) ensureMathTypingStarted();
   recordMathTypingKeys(value);
   if (/\s/.test(value)) {
     completeMathTypingTerm(value.split(/\s+/)[0], { countSubmitKey: true });
@@ -2246,7 +2878,7 @@ function handleMathTypingInput() {
   }
 
   const expected = mathTypingState.words[mathTypingState.index] || "";
-  const isLastTerm = mathTypingState.index === mathTypingState.words.length - 1;
+  const isLastTerm = mathTypingSettings.mode === "words" && mathTypingState.index === mathTypingSettings.amount - 1;
   if (isLastTerm && value === expected) {
     completeMathTypingTerm(value);
     return;
@@ -3885,15 +4517,8 @@ function availableGenerators(source = generators) {
   return unlocked.length ? unlocked : (modePool.length ? modePool : source);
 }
 
-function shouldAskFRQ() {
-  const nextProblem = state.problemIndex + 1;
-  return nextProblem % 4 === 0 || (nextProblem > 2 && Math.random() < 0.18);
-}
-
 function nextQuestion() {
-  const frqPool = availableGenerators(frqGenerators);
-  const useFRQ = frqPool.length > 0 && shouldAskFRQ();
-  const generator = pick(useFRQ ? frqPool : availableGenerators(generators));
+  const generator = pick(availableGenerators(generators));
   const question = generator.build();
   state.current = question;
   state.locked = false;
@@ -4295,8 +4920,10 @@ function applyAppSettings() {
   elements.themeLight.setAttribute("aria-pressed", String(lightMode));
 
   document.body.classList.toggle("floating-off", !appSettings.floatingNumbers);
-  elements.floatingToggle.classList.toggle("active", appSettings.floatingNumbers);
-  elements.floatingToggle.setAttribute("aria-pressed", String(appSettings.floatingNumbers));
+  if (elements.floatingToggle) {
+    elements.floatingToggle.classList.toggle("active", false);
+    elements.floatingToggle.setAttribute("aria-pressed", "false");
+  }
   if (!appSettings.floatingNumbers) {
     formulae.forEach((formula) => {
       if (formula.node) formula.node.style.opacity = "0";
@@ -4383,9 +5010,12 @@ function applyDesmosSettings() {
   document.body.classList.toggle("desmos-answer-box-hidden", desmosSettings.hideAnswerBox);
   document.body.classList.toggle("desmos-timebar-off", !desmosSettings.timebar);
 
-  if (elements.desmosHideAnswerToggle) {
-    elements.desmosHideAnswerToggle.classList.toggle("active", desmosSettings.hideAnswerBox);
-    elements.desmosHideAnswerToggle.setAttribute("aria-pressed", String(desmosSettings.hideAnswerBox));
+  if (elements.desmosAnswerToggle) {
+    const answerVisible = !desmosSettings.hideAnswerBox;
+    const label = answerVisible ? "Hide Desmos text" : "Show Desmos text";
+    elements.desmosAnswerToggle.setAttribute("aria-pressed", String(answerVisible));
+    elements.desmosAnswerToggle.setAttribute("aria-label", label);
+    elements.desmosAnswerToggle.title = label;
   }
   if (elements.desmosTimebarToggle) {
     elements.desmosTimebarToggle.classList.toggle("active", desmosSettings.timebar);
@@ -4413,7 +5043,6 @@ function toggleFloatingNumbers() {
 
 function toggleDesmosAnswerBox() {
   desmosSettings.hideAnswerBox = !desmosSettings.hideAnswerBox;
-  localStorage.setItem("bc-blitz-desmos-hide-answer", desmosSettings.hideAnswerBox ? "on" : "off");
   applyDesmosSettings();
 }
 
@@ -4436,7 +5065,7 @@ function setSettingsOpen(open) {
 }
 
 function isTi84Fullscreen() {
-  return document.fullscreenElement === elements.ti84Panel;
+  return document.fullscreenElement === elements.calcPage;
 }
 
 function updateTi84FullscreenButton() {
@@ -4468,8 +5097,8 @@ function toggleTi84Guide() {
 }
 
 async function toggleTi84Fullscreen() {
-  if (!elements.ti84Panel || !elements.ti84Fullscreen) return;
-  if (!document.fullscreenEnabled || !elements.ti84Panel.requestFullscreen) {
+  if (!elements.calcPage || !elements.ti84Fullscreen) return;
+  if (!document.fullscreenEnabled || !elements.calcPage.requestFullscreen) {
     elements.ti84Fullscreen.disabled = true;
     elements.ti84Fullscreen.title = "Fullscreen is not supported";
     return;
@@ -4479,7 +5108,7 @@ async function toggleTi84Fullscreen() {
     if (isTi84Fullscreen()) {
       await document.exitFullscreen();
     } else {
-      await elements.ti84Panel.requestFullscreen();
+      await elements.calcPage.requestFullscreen();
     }
   } catch {
     elements.ti84Fullscreen.blur();
@@ -4489,6 +5118,7 @@ async function toggleTi84Fullscreen() {
 }
 
 function showPage(page) {
+  const previousPage = state.page;
   const showingLanding = page === "landing";
   const showingHome = page === "home";
   const showingDeveloper = page === "developer";
@@ -4498,6 +5128,8 @@ function showPage(page) {
   const showingCalc = page === "calc";
   const showingGame = page === "game";
   state.page = page;
+
+  if (["study", "ap"].includes(previousPage) && !showingStudy) pauseStudyVideoPlayback();
 
   elements.landingPage.classList.toggle("active", showingLanding);
   elements.landingPage.setAttribute("aria-hidden", String(!showingLanding));
@@ -4524,6 +5156,7 @@ function showPage(page) {
   elements.navAP.classList.toggle("active", false);
   elements.navStudy.classList.toggle("active", showingStudy);
   elements.navDeveloper.classList.toggle("active", showingDeveloper);
+
   setFloatingNumbersPagePaused(!shouldGenerateFloatingNumbers());
 
   if (showingDesmos) {
@@ -4537,7 +5170,6 @@ function showPage(page) {
       postTi84FrameMessage({ type: "ti84:fullscreen", active: isTi84Fullscreen() });
     }, 80);
   }
-  if (showingStudy) setStudyMode(showingAP ? "ap" : "study");
 }
 
 function leaveGame(page) {
@@ -4855,7 +5487,7 @@ function tickDesmosTimer(dt) {
   desmosState.time = clamp(desmosState.time - dt, 0, desmosState.maxTime);
   updateDesmosTimerView();
   if (desmosState.time <= 0) {
-    setDesmosFeedback(`Time up  Score: ${desmosState.score}`, "bad");
+    setDesmosFeedback("Time's up", "complete");
     endDesmosSpeedrun({ preserveFeedback: true });
   }
 }
@@ -5027,18 +5659,20 @@ elements.restart.addEventListener("click", () => startGame());
 elements.skip.addEventListener("click", skipQuestion);
 elements.frqForm.addEventListener("submit", answerFRQ);
 elements.desmosStart.addEventListener("click", startDesmosSpeedrun);
-elements.desmosGuideToggle.addEventListener("click", () => {
-  setDesmosGuideVisible(elements.desmosGuide.hidden);
-});
-elements.desmosGuideClose.addEventListener("click", () => {
-  setDesmosGuideVisible(false);
-  elements.desmosGuideToggle.focus();
-});
 elements.desmosModeButtons.forEach((button) => {
   button.addEventListener("click", () => setDesmosMode(button.dataset.desmosMode));
 });
-elements.studyModeButtons.forEach((button) => {
-  button.addEventListener("click", () => setStudyMode(button.dataset.studyMode));
+elements.mathTypingModeButtons.forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setMathTypingConfig({ mode: button.dataset.mathTypingMode });
+  });
+});
+elements.mathTypingAmountButtons.forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setMathTypingConfig({ amount: Number(button.dataset.mathTypingAmount) });
+  });
 });
 elements.mathTypingInput.addEventListener("input", handleMathTypingInput);
 elements.mathTypingInput.addEventListener("keydown", (event) => {
@@ -5063,8 +5697,8 @@ elements.settingsOverlay.addEventListener("click", (event) => {
 });
 elements.themeDark.addEventListener("click", () => setTheme("dark"));
 elements.themeLight.addEventListener("click", () => setTheme("light"));
-elements.floatingToggle.addEventListener("click", toggleFloatingNumbers);
-if (elements.desmosHideAnswerToggle) elements.desmosHideAnswerToggle.addEventListener("click", toggleDesmosAnswerBox);
+if (elements.floatingToggle) elements.floatingToggle.addEventListener("click", toggleFloatingNumbers);
+if (elements.desmosAnswerToggle) elements.desmosAnswerToggle.addEventListener("click", toggleDesmosAnswerBox);
 if (elements.desmosTimebarToggle) elements.desmosTimebarToggle.addEventListener("click", toggleDesmosTimebar);
 if (elements.ti84GuideToggle) elements.ti84GuideToggle.addEventListener("click", toggleTi84Guide);
 elements.ti84Fullscreen.addEventListener("click", toggleTi84Fullscreen);
@@ -5074,9 +5708,8 @@ window.addEventListener("keydown", (event) => {
     setSettingsOpen(false);
     return;
   }
-  if (event.key === "Escape" && !elements.desmosGuide.hidden) {
-    setDesmosGuideVisible(false);
-    elements.desmosGuideToggle.focus();
+  if (event.key === "Escape" && state.page === "study" && elements.studyVideoWatch && !elements.studyVideoWatch.hidden) {
+    closeStudyVideo({ focus: true });
     return;
   }
   if (event.key === "Escape" && elements.ti84Guide && !elements.ti84Guide.hidden) {
@@ -5100,7 +5733,10 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("resize", () => {
   resizeCanvas();
-  updateMathTypingCaret();
+  window.requestAnimationFrame(() => {
+    updateMathTypingViewport();
+    updateMathTypingCaret();
+  });
 });
 
 resizeCanvas();
@@ -5111,10 +5747,9 @@ applyAppSettings();
 applyDesmosSettings();
 initDesmosPromptTooltips();
 initLandingOrbitMenu();
+initStudyVideoGrid();
 resetMathTypingGame();
 setDesmosMode("speedrun");
 showPage("landing");
-seedAmbientFormulae(formulaPoolLimit);
-resetFormulaFlowFromCenter();
 setDesmosAnswerEnabled(false);
 window.requestAnimationFrame(drawVfx);

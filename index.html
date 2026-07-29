@@ -8,9 +8,9 @@
   <meta http-equiv="Expires" content="0">
   <title>The Calculus Website</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
-  <link rel="stylesheet" href="styles.css?v=20260530-28">
+  <link rel="stylesheet" href="styles.css?v=20260714-9">
 </head>
-<body>
+<body class="desmos-answer-box-hidden">
   <canvas id="vfx" aria-hidden="true"></canvas>
   <div id="formula-layer" aria-hidden="true"></div>
 
@@ -73,11 +73,11 @@
 
   <section id="home-page" class="page home-page" aria-hidden="true">
     <div class="home-copy">
-      <h2>Calc Speedrun</h2>
+      <h2>Unit Test</h2>
     </div>
 
     <div class="blitz-launch" aria-label="Calc launch controls">
-      <button id="mode-start-btn" class="blitz-start-button" type="button">Game Start</button>
+      <button id="mode-start-btn" class="blitz-start-button" type="button">START</button>
       <button id="mode-settings-btn" class="blitz-mode-settings" type="button" aria-label="Choose game mode" aria-expanded="false" aria-controls="mode-grid">
         <svg class="settings-gear" aria-hidden="true" viewBox="0 0 24 24">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M10.3 1.9h3.4l.75 3.05c.48.16.94.35 1.37.58l2.68-1.62 2.4 2.4-1.62 2.68c.23.43.42.89.58 1.37l3.05.75v3.4l-3.05.75c-.16.48-.35.94-.58 1.37l1.62 2.68-2.4 2.4-2.68-1.62c-.43.23-.89.42-1.37.58l-.75 3.05h-3.4l-.75-3.05a8.65 8.65 0 0 1-1.37-.58L5.5 21.71l-2.4-2.4 1.62-2.68a8.65 8.65 0 0 1-.58-1.37l-3.05-.75v-3.4l3.05-.75c.16-.48.35-.94.58-1.37L3.1 6.31l2.4-2.4 2.68 1.62c.43-.23.89-.42 1.37-.58l.75-3.05ZM12 16.15a4.15 4.15 0 1 0 0-8.3 4.15 4.15 0 0 0 0 8.3Z"></path>
@@ -146,15 +146,16 @@
     <aside class="desmos-side-tabs" aria-label="Desmos mode selector">
       <button id="desmos-mode-speedrun" class="desmos-side-tab active" type="button" data-desmos-mode="speedrun" aria-pressed="true">speedrun</button>
       <button id="desmos-mode-typing" class="desmos-side-tab" type="button" data-desmos-mode="typing" aria-pressed="false">typing practice</button>
+      <button id="desmos-mode-tutorial" class="desmos-side-tab" type="button" data-desmos-mode="tutorial" aria-pressed="false">tutorial</button>
       <button id="desmos-mode-settings" class="desmos-side-tab" type="button" data-desmos-mode="settings" aria-pressed="false">settings</button>
     </aside>
 
     <div class="speedrun-panel speedrun-main desmos-mode-panel active" data-desmos-panel="speedrun">
       <div class="speedrun-card">
         <span id="desmos-label" hidden></span>
-        <div id="desmos-prompt" class="speedrun-prompt-set" aria-label="Target expression in two math fonts">
-          <div class="prompt-font-card prompt-mathjax-tex" data-desmos-tooltip="given expression by collegeboard">
-            <span class="math-render desmos-prompt-font" data-desmos-prompt-font>collegeboard text</span>
+        <div id="desmos-prompt" class="speedrun-prompt-set" aria-label="Target expression with optional Desmos formatting">
+          <div class="prompt-font-card prompt-mathjax-tex" data-desmos-tooltip="expression given by collegeboard">
+            <span class="math-render desmos-prompt-font" data-desmos-prompt-font>Problem Here</span>
           </div>
           <div class="prompt-font-card prompt-mathquill" data-desmos-tooltip="your built-in desmos should look like this with the given expression">
             <span class="math-render desmos-prompt-font" data-desmos-prompt-font>desmos text</span>
@@ -162,29 +163,72 @@
         </div>
       </div>
 
-      <div id="desmos-feedback" class="desmos-result-mark" aria-live="assertive" aria-label="Answer status"></div>
-
-      <div id="desmos-calculator" class="desmos-calculator" aria-label="Embedded Desmos graphing calculator"></div>
+      <div id="desmos-calculator-stage" class="desmos-calculator-stage">
+        <div id="desmos-calculator" class="desmos-calculator" aria-label="Embedded Desmos graphing calculator"></div>
+        <div id="desmos-feedback-effect" class="desmos-feedback-effect" aria-hidden="true"></div>
+      </div>
 
       <div class="desmos-actions">
-        <button id="desmos-start" class="primary" type="button">Start</button>
-        <span id="desmos-score" class="desmos-score" aria-live="polite" hidden>Score: 0</span>
-        <button id="desmos-guide-toggle" class="ultimate-guide-button" type="button" aria-expanded="false" aria-controls="desmos-guide">desmos tutorial</button>
+        <div class="desmos-run-controls">
+          <button id="desmos-start" class="primary" type="button">Start</button>
+          <span id="desmos-score" class="desmos-score" aria-live="polite" aria-label="Score 0" hidden>
+            <span class="desmos-score-label">score</span>
+            <strong id="desmos-score-value">0</strong>
+          </span>
+          <div id="desmos-feedback" class="desmos-result-mark" aria-live="assertive" aria-label="Answer status" hidden></div>
+        </div>
+
+        <div class="desmos-reference-controls">
+          <button id="desmos-answer-toggle" class="desmos-answer-toggle" type="button" aria-label="Show Desmos text" aria-pressed="false" title="Show Desmos text">
+            <svg class="desmos-eye-icon desmos-eye-off" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m3 3 18 18"></path>
+              <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>
+              <path d="M9.9 4.24A10.6 10.6 0 0 1 12 4c5.5 0 9.1 4.4 10 8a11.8 11.8 0 0 1-2.2 4.1"></path>
+              <path d="M6.6 6.6A12.4 12.4 0 0 0 2 12c.9 3.6 4.5 8 10 8a10.7 10.7 0 0 0 4.4-.9"></path>
+            </svg>
+            <svg class="desmos-eye-icon desmos-eye-open" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M2.1 12.35a1 1 0 0 1 0-.7C3.65 8 7.2 5.5 12 5.5S20.35 8 21.9 11.65a1 1 0 0 1 0 .7C20.35 16 16.8 18.5 12 18.5S3.65 16 2.1 12.35Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <section class="math-typing-panel desmos-mode-panel pageTest" data-desmos-panel="typing" aria-label="Math typing practice" hidden>
       <div id="typingTest" class="math-typing-test">
+        <div id="math-typing-config" class="math-typing-config" aria-label="Typing test options">
+          <div class="math-typing-config-group" role="group" aria-label="Test mode">
+            <button class="math-typing-config-button active" type="button" data-math-typing-mode="time" aria-pressed="true">
+              <svg class="math-typing-config-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.25"></circle>
+                <path d="M12 7.5v5l3.25 2"></path>
+              </svg>
+              <span>time</span>
+            </button>
+            <button class="math-typing-config-button" type="button" data-math-typing-mode="words" aria-pressed="false">
+              <span class="math-typing-config-letter" aria-hidden="true">A</span>
+              <span>words</span>
+            </button>
+          </div>
+
+          <div class="math-typing-config-group math-typing-amounts" role="group" aria-label="Test length">
+            <button class="math-typing-config-button" type="button" data-math-typing-amount="15" aria-pressed="false">15</button>
+            <button class="math-typing-config-button active" type="button" data-math-typing-amount="30" aria-pressed="true">30</button>
+            <button class="math-typing-config-button" type="button" data-math-typing-amount="60" aria-pressed="false">60</button>
+          </div>
+        </div>
+
         <div id="liveStatsMini" class="math-typing-stats timerMain" aria-label="Typing stats">
           <span class="speed"><b id="math-typing-wpm">0</b> wpm</span>
           <span class="acc"><b id="math-typing-accuracy">100</b>%</span>
-          <span class="time"><b id="math-typing-progress">0/0</b></span>
+          <span class="time"><b id="math-typing-progress">30s</b></span>
         </div>
 
         <div id="wordsWrapper" class="math-typing-words-wrapper">
           <div id="words" class="math-typing-words" aria-live="polite"></div>
-          <input id="wordsInput" class="math-typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type math expression">
         </div>
+        <input id="wordsInput" class="math-typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type math expression">
 
         <div id="math-typing-keyboard" class="math-typing-keyboard" aria-label="Next key guide" aria-live="polite"></div>
         <div id="math-typing-key-hint" class="math-typing-key-hint" aria-live="polite">next key: </div>
@@ -221,13 +265,6 @@
 
     <section class="desmos-settings-panel desmos-mode-panel" data-desmos-panel="settings" aria-label="Desmos settings" hidden>
       <div class="desmos-settings-list">
-        <button id="desmos-hide-answer-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle Desmos font box">
-          <span class="switch-track" aria-hidden="true">
-            <span class="switch-thumb"></span>
-          </span>
-          <strong>Hide Desmos Font Box</strong>
-        </button>
-
         <button id="desmos-timebar-toggle" class="switch-setting desmos-switch-setting" type="button" aria-label="Toggle speedrun timer">
           <span class="switch-track" aria-hidden="true">
             <span class="switch-thumb"></span>
@@ -237,13 +274,12 @@
       </div>
     </section>
 
-    <section id="desmos-guide" class="desmos-guide-panel" aria-label="Desmos keyboard input guide" hidden>
+    <section id="desmos-guide" class="desmos-guide-panel desmos-mode-panel" data-desmos-panel="tutorial" aria-label="Desmos keyboard input guide" hidden>
       <div class="desmos-guide-header">
         <div>
           <span class="page-label">Desmos Tutorial</span>
           <h2>Keyboard Inputs</h2>
         </div>
-        <button id="desmos-guide-close" class="guide-close-button" type="button" aria-label="Close desmos tutorial">Close</button>
       </div>
 
       <p class="desmos-guide-impact">Using TI84 in AP exam is not recommended, since it takes way more time to type and draw graphs.</p>
@@ -352,71 +388,38 @@
   </section>
 
   <section id="study-page" class="page study-page" aria-hidden="true">
-    <aside class="study-side-tabs" aria-label="Study section selector">
-      <button class="study-side-tab active" type="button" data-study-mode="study" aria-pressed="true">study</button>
-      <button class="study-side-tab" type="button" data-study-mode="ap" aria-pressed="false">AP</button>
-    </aside>
-
-    <section class="study-mode-panel active" data-study-panel="study">
-      <section class="study-aim-board" aria-label="Study target logos">
-        <div class="study-aim-column">
-          <div class="study-logo-triangle" aria-label="UCLA, CMU, Michigan Engineering, and Stanford">
-            <a class="college-logo" href="https://samueli.ucla.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open UCLA Samueli School of Engineering website">
-              <img class="study-logo-img" src="ucla.jfif" alt="UCLA">
-            </a>
-            <a class="college-logo" href="https://www.cmu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Carnegie Mellon University website">
-              <img class="study-logo-img" src="wordmarksquare-red-600x600.png" alt="Carnegie Mellon University">
-            </a>
-            <a class="college-logo" href="https://www.engin.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Engineering website">
-              <img class="study-logo-img" src="images.png" alt="Michigan Engineering">
-            </a>
-            <a class="college-logo" href="https://engineering.stanford.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Stanford Engineering website">
-              <img class="study-logo-img" src="stanford.jfif" alt="Stanford University">
-            </a>
-          </div>
-          <strong>5</strong>
+    <section class="study-video-hub" aria-labelledby="study-video-heading">
+      <header class="study-video-heading">
+        <div>
+          <h2 id="study-video-heading">Essence of Calculus</h2>
         </div>
+        <p><strong>12</strong> videos</p>
+      </header>
 
-        <div class="study-aim-column">
-          <div class="study-logo-triangle" aria-label="Michigan Ross, MSU, and Georgia Tech">
-            <a class="college-logo" href="https://michiganross.umich.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan Ross website">
-              <img class="study-logo-img" src="unnamed.jpg" alt="Michigan Ross">
-            </a>
-            <a class="college-logo" href="https://msu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Michigan State University website">
-              <img class="study-logo-img" src="Michigan_State_Athletics_logo.png.svg" alt="Michigan State University">
-            </a>
-            <a class="college-logo" href="https://www.gatech.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Georgia Tech website">
-              <img class="study-logo-img" src="Georgia_Tech_Yellow_Jackets_logo.svg.png" alt="Georgia Tech">
-            </a>
-            <a class="college-logo" href="https://www.iu.edu/" target="_blank" rel="noopener noreferrer" aria-label="Open Indiana University website">
-              <img class="study-logo-img" src="Indiana_Hoosiers_logo.svg.png" alt="Indiana University">
-            </a>
+      <article id="study-video-watch" class="study-video-watch" hidden>
+        <div class="study-video-player-wrap">
+          <div class="study-video-frame">
+            <iframe
+              id="study-video-player"
+              title="Selected Essence of Calculus video"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            ></iframe>
           </div>
-          <strong>4</strong>
+          <button id="study-video-close" class="study-video-close" type="button" aria-label="Close video" title="Close video">&times;</button>
         </div>
-
-        <div class="study-aim-column study-aim-text">
-          <div class="study-logo-triangle study-future-grid" aria-label="NBA, NFL, U.S. Army, and AP Nap">
-            <a class="future-logo-tile" href="https://www.nba.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NBA website">
-              <img class="study-logo-img tall-logo-img" src="National_Basketball_Association_logo.png" alt="NBA">
-            </a>
-            <a class="future-logo-tile" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer" aria-label="Open NFL website">
-              <img class="study-logo-img" src="National_Football_League_logo.png" alt="NFL">
-            </a>
-            <a class="future-logo-tile" href="https://www.army.mil/" target="_blank" rel="noopener noreferrer" aria-label="Open U.S. Army website">
-              <img class="study-logo-img" src="Mark_of_the_United_States_Army.svg.png" alt="U.S. Army">
-            </a>
-            <a class="future-logo-tile" href="https://cvhsnews.org/20482/satire/college-board-introduces-ap-nap-course-student-approval-is-nowhere-to-be-seen/" target="_blank" rel="noopener noreferrer" aria-label="Open AP Nap article">
-              <img class="study-logo-img" src="ap-nap-clean.png?v=20260524-3" alt="AP Nap">
-            </a>
-          </div>
-          <strong>1</strong>
+        <div class="study-video-meta" aria-live="polite">
+          <span id="study-video-chapter">Chapter 1 of 12</span>
+          <h3 id="study-video-title">The essence of calculus</h3>
         </div>
-      </section>
+      </article>
 
+      <div id="study-video-grid" class="study-video-grid" aria-label="Essence of Calculus videos"></div>
     </section>
 
-    <section class="study-mode-panel study-ap-panel" data-study-panel="ap" hidden>
+    <section class="study-ap-panel">
       <div class="ap-resource-stack" aria-label="AP Calculus BC information links">
         <p class="ap-resource-note">data may differ every year, click to see the official page</p>
 
@@ -430,7 +433,7 @@
           <img src="past%20score%20distribution.jpg" alt="AP Calculus BC score distribution">
         </a>
 
-        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution by unit">
+        <a class="ap-resource-card" href="https://apcentral.collegeboard.org/courses/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC course page">
           <span>Score Distribution Per Unit</span>
           <img src="score%20distribution%20per%20unit.jpg" alt="AP Calculus BC score distribution per unit">
         </a>
@@ -439,15 +442,8 @@
   </section>
 
   <section id="calc-page" class="page calc-page" aria-hidden="true">
-    <button id="ti84-guide-toggle" class="ti84-guide-toggle" type="button" aria-label="Open TI84 AP guide" aria-expanded="false" aria-controls="ti84-guide">
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path d="M4.5 5.8c0-.8.65-1.45 1.45-1.45h3.7c1.42 0 2.6.98 2.85 2.3v13.1c-.62-.78-1.58-1.25-2.62-1.25H5.95c-.8 0-1.45-.65-1.45-1.45V5.8Z"></path>
-        <path d="M19.5 5.8c0-.8-.65-1.45-1.45-1.45h-3.7c-1.42 0-2.6.98-2.85 2.3v13.1c.62-.78 1.58-1.25 2.62-1.25h3.93c.8 0 1.45-.65 1.45-1.45V5.8Z"></path>
-        <path d="M7.25 8.5h2.3"></path>
-        <path d="M7.25 11.35h2.3"></path>
-        <path d="M14.45 8.5h2.3"></path>
-        <path d="M14.45 11.35h2.3"></path>
-      </svg>
+    <button id="ti84-guide-toggle" class="ti84-guide-toggle" type="button" aria-label="Open TI84 button combinations" title="TI84 button guide" aria-expanded="false" aria-controls="ti84-guide">
+      <span class="ti84-guide-eyes" aria-hidden="true">👀</span>
     </button>
 
     <aside id="ti84-guide" class="ti84-guide-panel" aria-label="TI84 AP Calculus BC button guide" hidden>
@@ -644,14 +640,6 @@
         </div>
       </div>
 
-      <div class="settings-group" aria-label="Floating numbers">
-        <button id="floating-toggle" class="switch-setting" type="button" aria-label="Toggle floating numbers">
-          <span class="switch-track" aria-hidden="true">
-            <span class="switch-thumb"></span>
-          </span>
-          <strong>Awesome Visual Effect</strong>
-        </button>
-      </div>
     </div>
   </section>
 
@@ -668,6 +656,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
   <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=4435f284d2154cf48e80abbbffc842cd"></script>
-  <script src="game.js?v=20260530-28"></script>
+  <script src="game.js?v=20260714-9"></script>
 </body>
 </html>

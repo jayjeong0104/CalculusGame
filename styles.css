@@ -60,21 +60,19 @@ body {
 }
 
 body.light-mode {
-  --panel: rgba(255, 255, 255, 0.92);
+  color-scheme: light;
+  --panel: rgba(255, 255, 255, 0.94);
   --panel-strong: #ffffff;
-  --chalk: #18211e;
-  --text: #141815;
-  --muted: #5f675f;
-  --line: rgba(20, 24, 21, 0.13);
+  --chalk: #202426;
+  --text: #202426;
+  --muted: #656b70;
+  --line: rgba(32, 36, 38, 0.15);
+  --shadow: 0 22px 58px rgba(30, 39, 46, 0.15);
   color: var(--text);
   background:
-    radial-gradient(circle at 18% 12%, rgba(49, 183, 214, 0.22), transparent 28vw),
-    radial-gradient(circle at 84% 18%, rgba(239, 185, 56, 0.2), transparent 24vw),
-    linear-gradient(135deg, #f7fbf4 0%, #dcefe5 48%, #fff7df 100%);
-}
-
-body.guide-open {
-  overflow: hidden;
+    linear-gradient(120deg, rgba(49, 95, 112, 0.1), transparent 34%),
+    linear-gradient(240deg, rgba(127, 49, 69, 0.08), transparent 31%),
+    linear-gradient(135deg, #f7f8f7 0%, #e9eef0 50%, #f5f0f2 100%);
 }
 
 body.settings-open {
@@ -350,14 +348,22 @@ body.light-mode .switch-setting.active {
 body.light-mode .top-brand,
 body.light-mode .top-nav button,
 body.light-mode .home-copy,
-body.light-mode .home-copy h2,
 body.light-mode .developer-mark,
-body.light-mode .developer-notes,
+body.light-mode .developer-notes {
+  color: #18211e;
+  text-shadow: none;
+}
+
+body.light-mode .top-brand strong,
+body.light-mode .home-copy h2,
+body.light-mode .desmos-guide-header h2,
 body.light-mode .study-header h2,
 body.light-mode .ap-header h2,
-body.light-mode .desmos-guide-header h2 {
-  color: #18211e;
-  text-shadow: 0 10px 28px rgba(255, 255, 255, 0.42);
+body.light-mode .developer-profile h2,
+body.light-mode .brand h1,
+body.light-mode .settings-head h2 {
+  color: #000000;
+  text-shadow: none;
 }
 
 body.light-mode .top-nav button:hover,
@@ -367,9 +373,7 @@ body.light-mode .top-nav button.active {
 }
 
 body.light-mode .desmos-guide-panel {
-  background:
-    radial-gradient(circle at 78% 18%, rgba(49, 183, 214, 0.22), transparent 24vw),
-    rgba(246, 251, 247, 0.96);
+  background: transparent;
 }
 
 body.light-mode .desmos-guide-row {
@@ -391,6 +395,7 @@ body.light-mode .desmos-guide-row h3 {
 }
 
 #formula-layer {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -1457,7 +1462,7 @@ body.light-mode .landing-orbit-card {
 .desmos-side-tabs {
   position: fixed;
   top: 132px;
-  left: max(20px, calc((100vw - 1480px) / 2));
+  left: clamp(20px, 2vw, 40px);
   z-index: 6;
   display: grid;
   gap: 14px;
@@ -1478,8 +1483,8 @@ body.light-mode .landing-orbit-card {
   padding: 0 22px;
   text-align: left;
   text-transform: lowercase;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
-  transition: color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+  box-shadow: none;
+  transition: color 140ms ease, background 140ms ease;
 }
 
 .desmos-side-tab:hover,
@@ -1488,8 +1493,8 @@ body.light-mode .landing-orbit-card {
   outline: 0;
   color: #10110f;
   background: var(--gold);
-  transform: translateX(3px);
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.32);
+  transform: none;
+  box-shadow: none;
 }
 
 .desmos-mode-panel {
@@ -1530,56 +1535,262 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   grid-template-columns: minmax(0, 1040px);
   justify-content: center;
   justify-items: stretch;
-  padding-left: max(252px, calc((100vw - 1180px) / 2 + 252px));
+  padding-left: max(18px, calc((100vw - 1180px) / 2));
 }
 
-.study-side-tabs {
-  position: fixed;
-  top: 132px;
-  left: max(20px, calc((100vw - 1480px) / 2));
-  z-index: 6;
+.study-video-hub {
   display: grid;
-  gap: 14px;
-  width: 232px;
+  gap: 16px;
+  min-width: 0;
 }
 
-.study-side-tab {
-  min-height: 72px;
-  border: 0;
-  border-radius: 10px;
-  color: rgba(245, 241, 231, 0.58);
-  background: rgba(245, 241, 231, 0.08);
-  cursor: pointer;
-  font-family: "Supercell Magic", Inter, sans-serif;
-  font-size: 1.12rem;
+.study-video-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(245, 241, 231, 0.18);
+}
+
+.study-video-heading > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.study-video-heading span,
+.study-video-meta > span {
+  color: var(--gold);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0;
-  padding: 0 22px;
-  text-align: left;
-  text-transform: lowercase;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
-  transition: color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+  text-transform: uppercase;
 }
 
-.study-side-tab:hover,
-.study-side-tab:focus-visible,
-.study-side-tab.active {
-  outline: 0;
-  color: #10110f;
-  background: var(--gold);
-  transform: translateX(3px);
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.32);
+.study-video-heading h2 {
+  margin: 0;
+  color: var(--chalk);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 1.85rem;
+  line-height: 1.12;
+  letter-spacing: 0;
 }
 
-.study-mode-panel {
+.study-video-heading p {
+  flex: 0 0 auto;
+  margin: 0 0 2px;
+  color: rgba(245, 241, 231, 0.68);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.study-video-heading p strong {
+  color: var(--chalk);
+}
+
+.study-video-watch {
   display: grid;
-  grid-column: 1;
-  width: min(100%, 1040px);
-  gap: clamp(22px, 3.2vw, 42px);
+  justify-self: center;
+  width: min(100%, 920px);
+  min-width: 0;
+  scroll-margin-top: 12px;
 }
 
-.study-mode-panel[hidden] {
-  display: none !important;
+.study-video-watch[hidden] {
+  display: none;
+}
+
+.study-video-player-wrap {
+  position: relative;
+}
+
+.study-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(245, 241, 231, 0.18);
+  border-radius: 6px;
+  background: #050505;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.study-video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.study-video-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0 0 2px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 4px;
+  color: #ffffff;
+  background: rgba(8, 8, 8, 0.78);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.study-video-close:hover,
+.study-video-close:focus-visible {
+  outline: 0;
+  border-color: rgba(239, 185, 56, 0.82);
+  background: rgba(8, 8, 8, 0.94);
+}
+
+.study-video-meta {
+  display: grid;
+  gap: 5px;
+  padding: 14px 2px 13px;
+  border-bottom: 1px solid rgba(245, 241, 231, 0.16);
+}
+
+.study-video-meta h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--chalk);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.study-video-meta p {
+  margin: 0;
+  color: rgba(245, 241, 231, 0.62);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.study-video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px 16px;
+  min-width: 0;
+}
+
+.study-video-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--chalk);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: none;
+}
+
+.study-video-card:focus-visible {
+  outline: 0;
+}
+
+.study-video-thumbnail {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #050505;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.study-video-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.study-video-card:hover .study-video-thumbnail,
+.study-video-card:focus-visible .study-video-thumbnail {
+  box-shadow: 0 0 0 2px rgba(239, 185, 56, 0.68), 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.study-video-card.active .study-video-thumbnail {
+  box-shadow: 0 0 0 2px var(--gold), 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.study-video-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 22px;
+  padding-left: 1px;
+  border-radius: 4px;
+  color: #ffffff;
+  background: rgba(8, 8, 8, 0.76);
+  font-size: 0.62rem;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms ease, background 120ms ease;
+}
+
+.study-video-card:hover .study-video-play-icon,
+.study-video-card:focus-visible .study-video-play-icon,
+.study-video-card.active .study-video-play-icon {
+  opacity: 1;
+}
+
+.study-video-card.active .study-video-play-icon {
+  background: #b52d3f;
+}
+
+.study-video-card-details {
+  min-width: 0;
+}
+
+.study-video-card-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.study-video-card-copy small {
+  color: rgba(245, 241, 231, 0.54);
+  font-size: 0.65rem;
+  font-weight: 650;
+}
+
+.study-video-card-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: inherit;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 780;
+  line-height: 1.28;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.study-ap-panel {
+  padding-top: 28px;
+  border-top: 1px solid rgba(245, 241, 231, 0.16);
 }
 
 .study-aim-board {
@@ -2192,33 +2403,280 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
 }
 
 .desmos-result-mark {
-  display: grid;
-  place-items: center;
-  position: relative;
-  z-index: 2;
-  height: 0;
-  min-height: 0;
-  overflow: visible;
-  color: rgba(245, 241, 231, 0.28);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 5px 12px 5px 6px;
+  border: 1px solid rgba(245, 241, 231, 0.22);
+  border-radius: 8px;
+  color: var(--chalk);
+  background: rgba(245, 241, 231, 0.08);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: clamp(2.6rem, 7vw, 5rem);
-  font-weight: 950;
   line-height: 1;
   pointer-events: none;
-  text-shadow: 0 14px 36px rgba(0, 0, 0, 0.34);
-  transform: translateY(10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
 }
 
 .desmos-result-mark.good {
-  color: #23b26d;
-  font-family: "Supercell Magic", Inter, sans-serif;
-  text-shadow:
-    0 0 12px rgba(35, 178, 109, 0.72),
-    0 14px 36px rgba(0, 0, 0, 0.34);
+  border-color: rgba(35, 178, 109, 0.55);
+  color: #9ff0c3;
+  background: rgba(35, 178, 109, 0.14);
 }
 
 .desmos-result-mark.bad {
-  color: #fff6f2;
+  border-color: rgba(228, 77, 67, 0.46);
+  color: #ffaaa4;
+  background: rgba(228, 77, 67, 0.13);
+}
+
+.desmos-result-mark.complete {
+  border-color: rgba(239, 185, 56, 0.62);
+  color: #ffd76f;
+  background: rgba(239, 185, 56, 0.14);
+}
+
+.desmos-result-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  color: currentColor;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.desmos-result-mark.complete .desmos-result-icon::before {
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  content: "";
+}
+
+.desmos-result-mark.complete .desmos-result-icon::after {
+  position: absolute;
+  top: 9px;
+  left: 16px;
+  width: 5px;
+  height: 7px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  content: "";
+}
+
+.desmos-result-copy {
+  display: grid;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.desmos-result-copy strong {
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.desmos-result-copy > span {
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  opacity: 0.84;
+}
+
+.desmos-calculator-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.desmos-calculator-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  content: "";
+  pointer-events: none;
+}
+
+.desmos-calculator-stage.feedback-good::after {
+  animation: desmosStageGood 720ms ease-out both;
+}
+
+.desmos-feedback-effect {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding: clamp(22px, 7%, 42px) 16px 16px;
+  overflow: hidden;
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.desmos-feedback-effect.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.desmos-effect-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, auto);
+  align-items: center;
+  gap: 12px;
+  min-width: min(230px, 100%);
+  max-width: calc(100% - 24px);
+  min-height: 64px;
+  padding: 8px 16px 8px 8px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: rgba(13, 16, 14, 0.94);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(10px);
+}
+
+.desmos-feedback-effect.good .desmos-effect-card {
+  color: #9ff0c3;
+  animation: desmosEffectGood 780ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.desmos-effect-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  color: #10110f;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.desmos-feedback-effect.good .desmos-effect-icon {
+  background: #69dea1;
+  box-shadow: 0 0 24px rgba(35, 178, 109, 0.44);
+}
+
+.desmos-effect-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.desmos-effect-copy strong {
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(0.9rem, 1.7vw, 1.12rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.desmos-effect-copy > span {
+  color: rgba(245, 241, 231, 0.78);
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.desmos-result-mark.good,
+.desmos-result-mark.bad {
+  animation: desmosStatusPop 240ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.desmos-score.score-bump {
+  animation: desmosScoreBump 420ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+@keyframes desmosEffectGood {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.82);
+  }
+
+  22% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-7px) scale(0.98);
+  }
+}
+
+@keyframes desmosStageGood {
+  0% {
+    border-color: transparent;
+    box-shadow: 0 0 0 rgba(35, 178, 109, 0);
+  }
+
+  28% {
+    border-color: rgba(105, 222, 161, 0.96);
+    box-shadow: 0 0 0 3px rgba(35, 178, 109, 0.2), 0 0 34px rgba(35, 178, 109, 0.34);
+  }
+
+  100% {
+    border-color: transparent;
+    box-shadow: 0 0 0 rgba(35, 178, 109, 0);
+  }
+}
+
+@keyframes desmosStatusPop {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes desmosScoreBump {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  42% {
+    border-color: rgba(239, 185, 56, 0.9);
+    background: rgba(239, 185, 56, 0.2);
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desmos-calculator-stage.feedback-good::after,
+  .desmos-feedback-effect .desmos-effect-card,
+  .desmos-result-mark.good,
+  .desmos-result-mark.bad,
+  .desmos-score.score-bump {
+    animation: none;
+  }
+
+  .desmos-calculator-stage.feedback-good::after {
+    border-color: rgba(105, 222, 161, 0.96);
+  }
+
+  .math-typing-words {
+    transition: none;
+  }
 }
 
 .desmos-calculator {
@@ -2239,22 +2697,105 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.desmos-run-controls,
+.desmos-reference-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.desmos-run-controls {
+  flex: 1 1 auto;
+}
+
+.desmos-reference-controls {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .desmos-score {
   min-height: 48px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
   border: 1px solid rgba(245, 241, 231, 0.24);
   border-radius: 8px;
   color: var(--gold);
   background: rgba(245, 241, 231, 0.08);
-  font-family: "Supercell Magic", Inter, sans-serif;
-  font-size: 0.95rem;
-  font-weight: 900;
   line-height: 1;
+}
+
+.desmos-score-label {
+  color: color-mix(in srgb, var(--chalk) 68%, transparent);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.desmos-score strong {
+  min-width: 1ch;
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.desmos-answer-toggle {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(245, 241, 231, 0.28);
+  border-radius: 8px;
+  color: var(--chalk);
+  background: rgba(245, 241, 231, 0.08);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.desmos-answer-toggle:hover,
+.desmos-answer-toggle:focus-visible {
+  outline: 0;
+  border-color: rgba(239, 185, 56, 0.86);
+  color: var(--gold);
+  background: rgba(239, 185, 56, 0.1);
+}
+
+.desmos-answer-toggle[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: #10110f;
+  background: var(--gold);
+}
+
+.desmos-eye-icon {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.desmos-eye-open {
+  display: none;
+}
+
+.desmos-answer-toggle[aria-pressed="true"] .desmos-eye-off {
+  display: none;
+}
+
+.desmos-answer-toggle[aria-pressed="true"] .desmos-eye-open {
+  display: block;
 }
 
 .math-typing-panel {
@@ -2297,6 +2838,87 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   margin: 0 auto;
 }
 
+.math-typing-config {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.45rem;
+  margin: 0 auto 0.12rem;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.math-typing-config-group {
+  display: flex;
+  align-items: center;
+  gap: 0.12rem;
+  min-height: 2.35rem;
+  padding: 0.24rem;
+  border: 1px solid color-mix(in srgb, var(--chalk) 9%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--chalk) 7%, transparent);
+}
+
+.math-typing-config-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-width: 2.05rem;
+  min-height: 1.78rem;
+  padding: 0.34rem 0.52rem;
+  border: 0;
+  border-radius: 5px;
+  color: var(--sub-color);
+  background: transparent;
+  font: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.math-typing-config-button:hover {
+  color: var(--text-color);
+}
+
+.math-typing-config-button.active {
+  color: var(--main-color);
+  background: color-mix(in srgb, var(--main-color) 10%, transparent);
+}
+
+.math-typing-config-button:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 1px;
+}
+
+.math-typing-config-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.math-typing-config-letter {
+  display: inline-grid;
+  width: 0.9rem;
+  height: 0.9rem;
+  place-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .math-typing-stats {
   display: flex;
   align-items: baseline;
@@ -2329,10 +2951,10 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
 
 .math-typing-words-wrapper {
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   width: 100%;
-  height: auto;
-  min-height: 5.4em;
+  height: 7.2em;
+  min-height: 0;
   mask-image: none;
 }
 
@@ -2355,7 +2977,8 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   line-height: 1.16;
   contain: layout style;
   user-select: none;
-  transition: transform 250ms ease;
+  will-change: transform;
+  transition: transform 150ms cubic-bezier(0.2, 0.78, 0.2, 1);
   --correct-letter-color: var(--text-color);
   --untyped-letter-color: var(--sub-color);
   --incorrect-letter-color: var(--error-color);
@@ -2527,46 +3150,55 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
 }
 
 .math-typing-keyboard {
-  --mt-key-width: clamp(1.38rem, 5.1vw, 2.58rem);
-  --mt-wide-key-width: clamp(3.25rem, 10.7vw, 5.6rem);
-  --mt-space-key-width: min(20rem, 42vw);
+  --mt-key-gap: clamp(0.16rem, 0.42vw, 0.28rem);
+  --mt-key-height: clamp(2rem, 3.5vw, 2.3rem);
+  --mt-label-inset: clamp(3px, 0.55vw, 6px);
   display: grid;
-  gap: clamp(0.22rem, 0.65vh, 0.36rem);
-  justify-items: center;
-  width: min(100%, 980px);
+  gap: var(--mt-key-gap);
+  width: min(100%, 780px);
   margin: 0.1rem auto 0;
-  color: var(--sub-color);
-  font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  padding: clamp(0.42rem, 0.85vw, 0.62rem);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #f2f3f3;
+  background: linear-gradient(145deg, #5d6264, #414648);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 14px 30px rgba(0, 0, 0, 0.18);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   pointer-events: none;
   user-select: none;
 }
 
 .math-keyboard-row {
   display: flex;
-  justify-content: center;
-  gap: clamp(0.1rem, 0.55vw, 0.3rem);
+  gap: var(--mt-key-gap);
   width: 100%;
 }
 
 .math-key {
+  --key-units: 1;
   position: relative;
   display: grid;
   place-items: center;
-  flex: 0 0 var(--mt-key-width);
-  min-width: var(--mt-key-width);
-  width: var(--mt-key-width);
-  height: clamp(1.92rem, 4.5vw, 2.18rem);
-  padding: 0 0.42rem;
-  border: 1px solid color-mix(in srgb, var(--sub-color) 38%, transparent);
-  border-radius: 0.36rem;
-  color: var(--sub-color);
-  background: var(--sub-alt-color);
-  font-size: 0.72rem;
-  font-weight: 500;
+  flex: var(--key-units) 1 0;
+  min-width: 0;
+  height: var(--mt-key-height);
+  padding: 0 0.24rem;
+  border: 1px solid #303335;
+  border-radius: 5px;
+  color: #f2f3f3;
+  background: linear-gradient(180deg, #242729, #17191a);
+  font-size: clamp(0.58rem, 0.85vw, 0.7rem);
+  font-weight: 450;
   line-height: 1;
-  text-transform: lowercase;
+  text-transform: none;
   overflow: hidden;
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 1px rgba(0, 0, 0, 0.3);
   transition:
     color 90ms ease,
     background-color 90ms ease,
@@ -2575,22 +3207,62 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
     transform 90ms cubic-bezier(0.2, 0.82, 0.2, 1);
 }
 
-.math-key.wide {
-  flex-basis: var(--mt-wide-key-width);
-  min-width: var(--mt-wide-key-width);
-  width: var(--mt-wide-key-width);
+.math-key-stack {
+  --key-units: 1;
+  display: grid;
+  flex: var(--key-units) 1 0;
+  min-width: 0;
+  height: var(--mt-key-height);
+  gap: 2px;
 }
 
-.math-key[data-key="enter"] {
-  flex-basis: var(--mt-wide-key-width);
-  min-width: var(--mt-wide-key-width);
-  width: var(--mt-wide-key-width);
+.math-key-stack .math-key {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 0.48rem;
 }
 
-.math-key.extra-wide {
-  flex-basis: var(--mt-space-key-width);
-  min-width: var(--mt-space-key-width);
-  width: var(--mt-space-key-width);
+.math-arrow-cluster {
+  --key-units: 3;
+  display: grid;
+  flex: var(--key-units) 1 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  height: var(--mt-key-height);
+  gap: 2px;
+}
+
+.math-arrow-cluster .math-key {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 0.48rem;
+}
+
+.math-arrow-cluster .math-key[data-key="arrowup"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.math-arrow-cluster .math-key[data-key="arrowleft"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.math-arrow-cluster .math-key[data-key="arrowdown"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.math-arrow-cluster .math-key[data-key="arrowright"] {
+  grid-column: 3;
+  grid-row: 2;
 }
 
 .math-key-label {
@@ -2601,19 +3273,145 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   white-space: nowrap;
 }
 
-.math-key-hint {
+.letter-key .math-key-label {
+  font-size: clamp(0.72rem, 1.08vw, 0.9rem);
+  font-weight: 450;
+  text-transform: uppercase;
+}
+
+.has-alternate .math-key-label,
+.math-key-alternate,
+.modifier-key .math-key-label,
+.math-key-symbol {
   position: absolute;
-  top: 0.22rem;
-  right: 0.32rem;
-  color: inherit;
-  font-size: 0.68rem;
-  font-weight: 700;
   line-height: 1;
-  opacity: 0;
-  transform: translateY(2px);
-  transition:
-    opacity 90ms ease,
-    transform 90ms cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.has-alternate .math-key-label {
+  left: 50%;
+  bottom: var(--mt-label-inset);
+  font-size: clamp(0.58rem, 0.8vw, 0.7rem);
+  transform: translateX(-50%);
+}
+
+.math-key-alternate {
+  top: var(--mt-label-inset);
+  left: 50%;
+  font-size: clamp(0.5rem, 0.68vw, 0.6rem);
+  transform: translateX(-50%);
+}
+
+.modifier-key .math-key-label {
+  left: var(--mt-label-inset);
+  bottom: var(--mt-label-inset);
+  max-width: calc(100% - var(--mt-label-inset) - var(--mt-label-inset));
+  font-size: clamp(0.34rem, 0.58vw, 0.5rem);
+  font-weight: 450;
+  text-align: left;
+  text-transform: lowercase;
+}
+
+.math-key-symbol {
+  top: var(--mt-label-inset);
+  right: var(--mt-label-inset);
+  font-size: clamp(0.52rem, 0.76vw, 0.68rem);
+}
+
+.modifier-key.label-right .math-key-label {
+  right: var(--mt-label-inset);
+  left: auto;
+  text-align: right;
+}
+
+.modifier-key.label-right .math-key-symbol {
+  right: auto;
+  left: var(--mt-label-inset);
+}
+
+.modifier-key[data-key="fn"] .math-key-label {
+  right: var(--mt-label-inset);
+  left: auto;
+  text-align: right;
+}
+
+.modifier-key[data-key="fn"] .math-key-symbol {
+  top: auto;
+  right: auto;
+  bottom: var(--mt-label-inset);
+  left: var(--mt-label-inset);
+  width: 9px;
+  height: 9px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0;
+}
+
+.modifier-key:is(
+    [data-key="control"],
+    [data-key="option"],
+    [data-key="command"]
+  ) .math-key-label {
+  right: auto;
+  left: 50%;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.modifier-key:is(
+    [data-key="control"],
+    [data-key="option"],
+    [data-key="command"]
+  ) .math-key-symbol {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.modifier-key[data-key="fn"] .math-key-symbol::before,
+.modifier-key[data-key="fn"] .math-key-symbol::after {
+  position: absolute;
+  content: "";
+}
+
+.modifier-key[data-key="fn"] .math-key-symbol::before {
+  inset: 1px 2px;
+  border-right: 1px solid currentColor;
+  border-left: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.modifier-key[data-key="fn"] .math-key-symbol::after {
+  top: 50%;
+  right: 1px;
+  left: 1px;
+  border-top: 1px solid currentColor;
+  transform: translateY(-50%);
+}
+
+.letter-key[data-key="f"]::after,
+.letter-key[data-key="j"]::after {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 10px;
+  height: 1px;
+  border-radius: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0.6;
+  transform: translateX(-50%);
+}
+
+.arrow-key .math-key-label {
+  font-size: clamp(0.5rem, 0.7vw, 0.62rem);
+}
+
+.space-key .math-key-label {
+  display: none;
+}
+
+.math-key-hint {
+  display: none;
 }
 
 .math-key.active {
@@ -2628,8 +3426,7 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
 }
 
 .math-key.shifted-active .math-key-hint {
-  opacity: 0.86;
-  transform: translateY(0);
+  display: none;
 }
 
 .math-typing-key-hint {
@@ -2645,6 +3442,7 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   user-select: none;
 }
 
+.math-typing-test.result-visible .math-typing-config,
 .math-typing-test.result-visible .math-typing-stats,
 .math-typing-test.result-visible .math-typing-words-wrapper,
 .math-typing-test.result-visible .math-typing-keyboard,
@@ -2763,94 +3561,51 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   color: var(--main-color);
 }
 
-.ultimate-guide-button {
-  min-width: 166px;
-  min-height: 48px;
-  border: 1px solid rgba(245, 241, 231, 0.28);
-  border-radius: 8px;
-  color: var(--chalk);
-  background: rgba(245, 241, 231, 0.08);
-  cursor: pointer;
-  font-weight: 950;
-  text-transform: lowercase;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
-}
-
-.ultimate-guide-button:hover,
-.ultimate-guide-button:focus-visible,
-.ultimate-guide-button[aria-expanded="true"] {
-  outline: 0;
-  border-color: rgba(239, 185, 56, 0.86);
-  color: #10110f;
-  background: var(--gold);
-  transform: translateY(-1px);
-}
-
 .desmos-guide-panel {
-  position: fixed;
-  inset: 0;
-  z-index: 7;
+  position: relative;
   display: grid;
-  grid-template-rows: auto 1fr;
-  justify-items: center;
-  width: 100vw;
-  height: 100vh;
-  gap: 18px;
+  align-content: start;
+  justify-items: stretch;
+  width: min(100%, 920px);
+  height: min(100%, calc(100vh - 132px));
+  min-height: 0;
+  gap: 16px;
   overflow-y: auto;
-  padding: clamp(24px, 4vw, 56px);
+  padding: 0 14px 24px 0;
   color: var(--chalk);
-  background:
-    radial-gradient(circle at 18% 10%, rgba(49, 183, 214, 0.2), transparent 30vw),
-    radial-gradient(circle at 86% 12%, rgba(239, 185, 56, 0.18), transparent 26vw),
-    rgba(13, 15, 13, 0.96);
-  backdrop-filter: blur(18px);
+  background: transparent;
 }
 
 .desmos-guide-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: end;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 18px;
-  width: min(100%, 1060px);
-  padding-bottom: 18px;
+  width: 100%;
+  padding: 2px 0 16px;
   border-bottom: 1px solid rgba(245, 241, 231, 0.22);
+  background: linear-gradient(to bottom, rgba(16, 17, 15, 0.98) 72%, rgba(16, 17, 15, 0));
 }
 
 .desmos-guide-header h2 {
-  font-size: clamp(1.7rem, 3.4vw, 3rem);
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
 }
 
 .desmos-guide-panel .desmos-ledger {
-  width: min(100%, 1060px);
+  width: 100%;
 }
 
 .desmos-guide-impact {
-  width: min(100%, 1060px);
-  margin: 0 0 18px;
+  width: 100%;
+  margin: 0 0 10px;
   color: rgba(245, 241, 231, 0.86);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(1rem, 1.35vw, 1.18rem);
   font-weight: 700;
   line-height: 1.45;
-}
-
-.guide-close-button {
-  min-width: 116px;
-  min-height: 44px;
-  border: 1px solid rgba(245, 241, 231, 0.28);
-  border-radius: 8px;
-  color: var(--chalk);
-  background: rgba(245, 241, 231, 0.08);
-  cursor: pointer;
-  font-weight: 950;
-}
-
-.guide-close-button:hover,
-.guide-close-button:focus-visible {
-  outline: 0;
-  border-color: rgba(239, 185, 56, 0.86);
-  color: #10110f;
-  background: var(--gold);
 }
 
 .speedrun-panel .feedback {
@@ -3115,15 +3870,12 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   background: rgba(25, 31, 28, 0.92);
 }
 
-.ti84-guide-toggle svg {
-  width: 25px;
-  height: 25px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.65;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.22));
+.ti84-guide-eyes {
+  display: block;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 1.42rem;
+  line-height: 1;
+  transform: translateY(1px);
 }
 
 .ti84-guide-panel {
@@ -3356,20 +4108,54 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   white-space: nowrap;
 }
 
-.ti84-panel:fullscreen {
+.calc-page:fullscreen {
+  position: relative;
   display: grid;
-  place-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: stretch;
   width: 100vw;
+  max-width: none;
   height: 100vh;
   min-height: 0;
   margin: 0;
+  padding: 0;
+  gap: 0;
   overflow: hidden;
   background: #10110f;
 }
 
-.ti84-panel:fullscreen .ti84-frame {
-  width: 100vw;
-  height: 100vh;
+.calc-page:fullscreen .ti84-panel {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+}
+
+.calc-page:fullscreen .ti84-frame {
+  width: 100%;
+  height: 100%;
+}
+
+.calc-page:fullscreen .ti84-guide-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 7;
+}
+
+.calc-page:fullscreen .ti84-guide-panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 6;
+  align-self: stretch;
+  width: min(360px, calc(100vw - 68px));
+  max-height: none;
+  padding: 70px 14px 14px;
+  border-radius: 0 8px 8px 0;
+  background: rgba(16, 17, 15, 0.94);
+  box-shadow: 18px 0 48px rgba(0, 0, 0, 0.34);
 }
 
 .ti84-fullscreen {
@@ -3839,6 +4625,11 @@ body.desmos-speedrun-view .time-track {
   box-shadow: 0 -8px 28px rgba(35, 178, 109, 0.35);
 }
 
+body.desmos-speedrun-view #time-bar {
+  background: var(--gold);
+  box-shadow: 0 -8px 28px rgba(239, 185, 56, 0.34);
+}
+
 #time-flash {
   position: absolute;
   inset: 0;
@@ -3937,6 +4728,460 @@ body.desmos-speedrun-view .time-track {
   42% { transform: translateX(9px); }
   64% { transform: translateX(-5px); }
   82% { transform: translateX(3px); }
+}
+
+/* Light mode uses surface-aware colors instead of reversing the dark palette. */
+body.light-mode .top-brand,
+body.light-mode .top-nav button,
+body.light-mode .landing-page,
+body.light-mode .home-copy,
+body.light-mode .developer-page,
+body.light-mode .desmos-page,
+body.light-mode .study-page,
+body.light-mode .ap-page {
+  color: #202426;
+  text-shadow: none;
+}
+
+body.light-mode .top-brand small,
+body.light-mode .landing-hero p,
+body.light-mode .landing-feature p,
+body.light-mode .landing-message p,
+body.light-mode .home-copy span {
+  color: #656b70;
+}
+
+body.light-mode .top-nav button:hover,
+body.light-mode .top-nav button:focus-visible,
+body.light-mode .top-nav button.active {
+  color: #7f3145;
+}
+
+body.light-mode .landing-panel::before {
+  border-color: rgba(32, 36, 38, 0.14);
+}
+
+body.light-mode .landing-kicker,
+body.light-mode .landing-feature span {
+  color: #7f3145;
+}
+
+body.light-mode .landing-secondary,
+body.light-mode .landing-feature button {
+  border-color: rgba(32, 36, 38, 0.2);
+  color: #292d30;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 24px rgba(30, 39, 46, 0.1);
+}
+
+body.light-mode .landing-orbit-card {
+  border-color: rgba(32, 36, 38, 0.17);
+  color: #202426;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 242, 243, 0.82)),
+    #ffffff;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 18px 42px rgba(30, 39, 46, 0.16);
+}
+
+body.light-mode .landing-orbit-calculus {
+  color: #202426;
+  background: linear-gradient(160deg, #ffffff, #e6eaec);
+}
+
+body.light-mode .landing-orbit-desmos {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.light-mode .landing-orbit-ti {
+  color: #f2f5f6;
+  background:
+    linear-gradient(90deg, rgba(104, 151, 168, 0.2) 1px, transparent 1px),
+    linear-gradient(rgba(104, 151, 168, 0.16) 1px, transparent 1px),
+    linear-gradient(160deg, #171a1c, #293239);
+  background-size: 16px 16px, 16px 16px, auto;
+}
+
+body.light-mode .landing-orbit-study {
+  color: #ffffff;
+  background: linear-gradient(135deg, #8a354c, #5c435b 50%, #315f70);
+}
+
+body.light-mode .landing-orbit-study span {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+body.light-mode .landing-orbit-info {
+  color: #f5f1e7;
+  background: linear-gradient(160deg, #121719, #343a3d);
+}
+
+body.light-mode .landing-feature-blitz h2,
+body.light-mode .landing-feature-ap h2 {
+  color: #292d30;
+}
+
+body.light-mode .landing-feature-desmos h2 {
+  color: #315f70;
+}
+
+body.light-mode .landing-feature-ti h2 {
+  color: #4f5960;
+}
+
+body.light-mode .landing-feature-study h2 {
+  color: #7f3145;
+}
+
+body.light-mode .blitz-mode-settings,
+body.light-mode .selected-mode-label {
+  border-color: rgba(32, 36, 38, 0.18);
+  color: #292d30;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 34px rgba(30, 39, 46, 0.14);
+}
+
+body.light-mode .blitz-mode-settings:hover,
+body.light-mode .blitz-mode-settings:focus-visible,
+body.light-mode .blitz-mode-settings.active {
+  border-color: rgba(127, 49, 69, 0.48);
+  background: #ffffff;
+}
+
+body.light-mode .blitz-start-button {
+  border-color: rgba(127, 49, 69, 0.72);
+  color: #ffffff;
+  background: linear-gradient(135deg, #8a354c, #315f70);
+  box-shadow: 0 18px 42px rgba(54, 48, 61, 0.24);
+}
+
+body.light-mode .mode-card.active,
+body.light-mode .mode-card[aria-pressed="true"] {
+  border-color: rgba(49, 95, 112, 0.88);
+  background: linear-gradient(145deg, #8a354c, #315f70);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.28),
+    0 20px 44px rgba(54, 48, 61, 0.24),
+    var(--shadow);
+}
+
+body.light-mode .all-mode {
+  background: linear-gradient(150deg, #202426, #3a444a 58%, #315f70);
+}
+
+body.light-mode .all-mode,
+body.light-mode .all-mode span {
+  color: #f5f1e7;
+}
+
+body.light-mode .page-label {
+  color: #7f3145;
+}
+
+body.light-mode .desmos-side-tab {
+  border: 1px solid rgba(32, 36, 38, 0.15);
+  color: #626a70;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 3px 10px rgba(30, 39, 46, 0.055);
+}
+
+body.light-mode .desmos-side-tab:hover,
+body.light-mode .desmos-side-tab:focus-visible,
+body.light-mode .desmos-side-tab.active {
+  color: #ffffff;
+  background: #7f3145;
+  box-shadow: none;
+}
+
+body.light-mode .desmos-header,
+body.light-mode .study-header,
+body.light-mode .ap-header {
+  background: linear-gradient(to bottom, rgba(247, 248, 247, 0.98), rgba(247, 248, 247, 0));
+}
+
+body.light-mode .desmos-header h2,
+body.light-mode .study-header h2,
+body.light-mode .ap-header h2,
+body.light-mode .developer-profile h2 {
+  color: #000000;
+  text-shadow: none;
+}
+
+body.light-mode .desmos-page .prompt-font-card {
+  border-color: rgba(32, 36, 38, 0.13);
+  box-shadow: 0 3px 10px rgba(30, 39, 46, 0.065);
+}
+
+body.light-mode .desmos-page .desmos-calculator {
+  border-color: rgba(32, 36, 38, 0.14);
+  box-shadow: 0 5px 16px rgba(30, 39, 46, 0.075);
+}
+
+body.light-mode .desmos-page .desmos-result-mark {
+  box-shadow: 0 2px 7px rgba(30, 39, 46, 0.055);
+}
+
+body.light-mode .desmos-page .desmos-effect-card {
+  box-shadow: 0 8px 20px rgba(30, 39, 46, 0.18);
+}
+
+body.light-mode .desmos-score,
+body.light-mode .desmos-answer-toggle {
+  border-color: rgba(32, 36, 38, 0.18);
+  color: #7f3145;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body.light-mode .desmos-score-label {
+  color: #626a70;
+}
+
+body.light-mode .desmos-result-mark.good {
+  border-color: rgba(8, 112, 68, 0.34);
+  color: #087044;
+  background: rgba(8, 112, 68, 0.09);
+}
+
+body.light-mode .desmos-result-mark.bad {
+  border-color: rgba(180, 55, 50, 0.3);
+  color: #a83430;
+  background: rgba(180, 55, 50, 0.08);
+}
+
+body.light-mode .desmos-result-mark.complete {
+  border-color: rgba(148, 103, 0, 0.34);
+  color: #805900;
+  background: rgba(239, 185, 56, 0.15);
+}
+
+body.light-mode .desmos-answer-toggle[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: #10110f;
+  background: var(--gold);
+}
+
+body.light-mode .speedrun-panel .feedback {
+  color: #626a70;
+}
+
+body.light-mode .speedrun-panel .feedback.good {
+  color: #087044;
+}
+
+body.light-mode .speedrun-panel .feedback.bad {
+  color: #b43732;
+}
+
+body.light-mode .math-typing-panel {
+  --bg-color: #202426;
+  --main-color: #7f3145;
+  --caret-color: #7f3145;
+  --sub-color: #697278;
+  --sub-alt-color: rgba(255, 255, 255, 0.72);
+  --text-color: #292d30;
+  --error-color: #b83b3f;
+  --error-extra-color: #8f2f34;
+}
+
+body.light-mode .math-typing-config-group {
+  border-color: rgba(32, 36, 38, 0.12);
+  background: rgba(32, 36, 38, 0.055);
+}
+
+body.light-mode .math-typing-config-button.active {
+  color: #682739;
+  background: rgba(127, 49, 69, 0.1);
+}
+
+body.light-mode .math-key {
+  border-color: #343739;
+  color: #f4f5f5;
+  background: linear-gradient(180deg, #292c2e, #181a1b);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.52),
+    0 1px 1px rgba(0, 0, 0, 0.28);
+}
+
+body.light-mode .math-typing-keyboard {
+  border-color: rgba(32, 36, 38, 0.18);
+  background: linear-gradient(145deg, #d9dcde, #bfc4c7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(32, 36, 38, 0.18),
+    0 14px 30px rgba(30, 39, 46, 0.14);
+}
+
+body.light-mode .math-key.active {
+  border-color: #682739;
+  color: #ffffff;
+  background: #8a354c;
+  box-shadow:
+    0 0 0 1px rgba(127, 49, 69, 0.2),
+    0 7px 18px rgba(127, 49, 69, 0.2),
+    inset 0 -2px 0 rgba(52, 16, 27, 0.18);
+}
+
+body.light-mode .math-result-words {
+  --correct-letter-color: #292d30;
+  --untyped-letter-color: #697278;
+}
+
+body.light-mode .desmos-guide-panel {
+  color: #202426;
+  background: transparent;
+}
+
+body.light-mode .desmos-guide-header {
+  background: linear-gradient(to bottom, rgba(247, 248, 247, 0.98) 72%, rgba(247, 248, 247, 0));
+}
+
+body.light-mode .desmos-guide-header,
+body.light-mode .desmos-guide-panel .desmos-ledger,
+body.light-mode .study-flow,
+body.light-mode .developer-notes {
+  border-color: rgba(32, 36, 38, 0.18);
+}
+
+body.light-mode .desmos-guide-row,
+body.light-mode .study-thread,
+body.light-mode .developer-notes div {
+  border-color: rgba(32, 36, 38, 0.14);
+}
+
+body.light-mode .desmos-guide-row code {
+  color: #315f70;
+}
+
+body.light-mode .desmos-guide-impact,
+body.light-mode .study-thread p,
+body.light-mode .ap-resource-note,
+body.light-mode .developer-profile p,
+body.light-mode .developer-notes dd {
+  color: #626a70;
+}
+
+body.light-mode .study-thread h3 {
+  color: #292d30;
+}
+
+body.light-mode .study-thread li > span {
+  color: #315f70;
+}
+
+body.light-mode .study-thread header span,
+body.light-mode .developer-notes dt {
+  color: #7f3145;
+}
+
+body.light-mode .ap-resource-card,
+body.light-mode .ap-resource-card span {
+  color: #292d30;
+}
+
+body.light-mode .ap-resource-card img {
+  box-shadow: 0 16px 38px rgba(30, 39, 46, 0.14);
+}
+
+body.light-mode .study-video-heading {
+  border-color: rgba(32, 36, 38, 0.16);
+}
+
+body.light-mode .study-video-heading span,
+body.light-mode .study-video-meta > span {
+  color: #7f3145;
+}
+
+body.light-mode .study-video-heading h2,
+body.light-mode .study-video-heading p strong,
+body.light-mode .study-video-meta h3,
+body.light-mode .study-video-card-copy strong {
+  color: #101214;
+}
+
+body.light-mode .study-video-heading p,
+body.light-mode .study-video-meta p {
+  color: #626a70;
+}
+
+body.light-mode .study-video-frame {
+  border-color: rgba(32, 36, 38, 0.16);
+  box-shadow: 0 8px 22px rgba(30, 39, 46, 0.12);
+}
+
+body.light-mode .study-video-meta,
+body.light-mode .study-ap-panel {
+  border-color: rgba(32, 36, 38, 0.14);
+}
+
+body.light-mode .study-video-card {
+  color: #292d30;
+}
+
+body.light-mode .study-video-thumbnail {
+  box-shadow: 0 5px 14px rgba(30, 39, 46, 0.1);
+}
+
+body.light-mode .study-video-card:hover .study-video-thumbnail,
+body.light-mode .study-video-card:focus-visible .study-video-thumbnail {
+  box-shadow: 0 0 0 2px rgba(127, 49, 69, 0.52), 0 5px 14px rgba(30, 39, 46, 0.11);
+}
+
+body.light-mode .study-video-card.active .study-video-thumbnail {
+  box-shadow: 0 0 0 2px #7f3145, 0 5px 14px rgba(30, 39, 46, 0.11);
+}
+
+body.light-mode .study-video-card-copy small {
+  color: #6b7378;
+}
+
+body.light-mode .developer-profile a {
+  color: #315f70;
+}
+
+body.light-mode .developer-mark {
+  color: rgba(32, 36, 38, 0.1);
+}
+
+body.light-mode .top-brand .mark,
+body.light-mode .brand .mark {
+  color: #ffffff;
+  background: linear-gradient(145deg, #8a354c, #315f70);
+}
+
+body.light-mode .settings-options button.active,
+body.light-mode .switch-setting.active,
+body.light-mode .primary {
+  border-color: rgba(127, 49, 69, 0.72);
+  color: #ffffff;
+  background: linear-gradient(135deg, #8a354c, #315f70);
+}
+
+body.light-mode .switch-setting.active .switch-track {
+  border-color: #7f3145;
+  background: #7f3145;
+}
+
+body.light-mode .study-aim-column > strong {
+  color: #7f3145;
+  text-shadow: 0 10px 26px rgba(127, 49, 69, 0.18);
+}
+
+body.light-mode .ti84-guide-toggle,
+body.light-mode .ti84-guide-panel,
+body.light-mode .ti84-guide-head h2,
+body.light-mode .game-over-copy,
+body.light-mode .game-over-copy span,
+body.light-mode .primary,
+body.light-mode .choice::before {
+  color: #f5f1e7;
+}
+
+body.light-mode .game-over-copy {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
 }
 
 @media (max-width: 820px) {
@@ -4084,36 +5329,35 @@ body.desmos-speedrun-view .time-track {
     padding-left: 0;
   }
 
-  .desmos-side-tabs,
-  .study-side-tabs {
-    position: static;
+  .study-video-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-column: 1;
-    width: 100%;
   }
 
   .desmos-side-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    position: static;
+    grid-column: 1;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .desmos-side-tab,
-  .study-side-tab {
+  .desmos-side-tab {
     text-align: center;
   }
 
   .desmos-side-tab:hover,
   .desmos-side-tab:focus-visible,
-  .desmos-side-tab.active,
-  .study-side-tab:hover,
-  .study-side-tab:focus-visible,
-  .study-side-tab.active {
-    transform: translateY(-1px);
+  .desmos-side-tab.active {
+    transform: none;
   }
 
-  .desmos-mode-panel,
-  .study-mode-panel {
+  .desmos-mode-panel {
     grid-column: 1;
     width: 100%;
+  }
+
+  .desmos-guide-panel {
+    height: calc(100vh - 208px);
+    padding-right: 8px;
   }
 
   .speedrun-panel {
@@ -4265,6 +5509,28 @@ body.desmos-speedrun-view .time-track {
     font-size: 0.76rem;
   }
 
+  .study-video-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .study-video-heading h2 {
+    font-size: 1.45rem;
+  }
+
+  .study-video-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .study-video-close {
+    top: 7px;
+    right: 7px;
+    width: 32px;
+    height: 32px;
+  }
+
   .desmos-guide-row {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -4274,8 +5540,116 @@ body.desmos-speedrun-view .time-track {
     text-align: left;
   }
 
+  .desmos-page,
+  .desmos-side-tabs,
+  .desmos-mode-panel,
+  .math-typing-panel,
+  .math-typing-test,
+  .math-typing-words-wrapper,
+  .math-typing-keyboard {
+    min-width: 0;
+  }
+
+  .desmos-side-tabs {
+    gap: 6px;
+  }
+
+  .desmos-side-tab {
+    min-width: 0;
+    min-height: 64px;
+    padding: 0 5px;
+    font-size: 0.82rem;
+  }
+
+  .math-typing-panel {
+    overflow-x: hidden;
+  }
+
+  .math-typing-config {
+    gap: 0.32rem;
+    font-size: 0.68rem;
+  }
+
+  .math-typing-config-group {
+    min-height: 2.05rem;
+    padding: 0.18rem;
+  }
+
+  .math-typing-config-button {
+    min-width: 1.75rem;
+    min-height: 1.62rem;
+    padding: 0.28rem 0.38rem;
+  }
+
+  .math-typing-keyboard {
+    --mt-key-gap: 2px;
+    --mt-key-height: 1.5rem;
+    --mt-label-inset: 2px;
+    padding: 5px;
+  }
+
+  .math-keyboard-row {
+    gap: 2px;
+  }
+
+  .math-key {
+    padding-inline: 0.08rem;
+    border-radius: 3px;
+    font-size: 0.5rem;
+  }
+
+  .math-key-stack {
+    gap: 1px;
+  }
+
+  .math-key-stack .math-key {
+    font-size: 0.4rem;
+  }
+
+  .letter-key .math-key-label {
+    font-size: 0.58rem;
+  }
+
+  .has-alternate .math-key-label {
+    font-size: 0.44rem;
+  }
+
+  .math-key-alternate {
+    font-size: 0.36rem;
+  }
+
+  .modifier-key .math-key-label {
+    font-size: 0.27rem;
+  }
+
+  .math-key-symbol {
+    font-size: 0.4rem;
+  }
+
+  .modifier-key[data-key="fn"] .math-key-symbol {
+    width: 6px;
+    height: 6px;
+  }
+
+  .letter-key[data-key="f"]::after,
+  .letter-key[data-key="j"]::after {
+    bottom: 2px;
+    width: 6px;
+  }
+
   .desmos-actions {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .desmos-run-controls,
+  .desmos-reference-controls {
+    width: 100%;
+  }
+
+  .desmos-reference-controls {
+    margin-left: 0;
+    justify-content: flex-end;
   }
 
   .math-typing-top,

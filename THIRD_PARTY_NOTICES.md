@@ -40,8 +40,9 @@ the TI84 button guide.
 ## Monkeytype-adapted typing panel
 
 The math typing panel in `index.html`, `styles.css`, and `game.js` uses adapted
-typing-test structure, word/letter styling, hidden input behavior, smooth caret
-transition behavior, result-stat layout patterns, and keymap display behavior from:
+typing-test structure, mode and length controls, measured three-line progression,
+word/letter styling, hidden input behavior, smooth caret transition behavior,
+result-stat layout patterns, and keymap display behavior from:
 https://github.com/monkeytypegame/monkeytype
 
 GPL-3.0 License
