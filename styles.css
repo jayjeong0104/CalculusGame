@@ -1419,7 +1419,7 @@ body.light-mode .landing-orbit-card {
   color: rgba(245, 241, 231, 0.16);
 }
 
-.developer-page,
+.info-page,
 .desmos-page,
 .study-page,
 .ap-page,
@@ -1428,7 +1428,7 @@ body.light-mode .landing-orbit-card {
   gap: clamp(22px, 3.2vw, 42px);
 }
 
-.developer-page,
+.info-page,
 .desmos-page,
 .study-page,
 .ap-page {
@@ -1785,7 +1785,7 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   -webkit-line-clamp: 2;
 }
 
-.study-ap-panel {
+.info-ap-panel {
   padding-top: 28px;
   border-top: 1px solid rgba(245, 241, 231, 0.16);
 }
@@ -1973,9 +1973,30 @@ body.desmos-answer-box-hidden .speedrun-prompt-set {
   justify-content: center;
 }
 
-.developer-page {
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.32fr);
-  align-items: end;
+.info-page {
+  grid-template-columns: minmax(0, 1040px);
+  justify-content: center;
+}
+
+.info-ap-panel {
+  display: grid;
+  gap: clamp(22px, 3vw, 34px);
+}
+
+.info-header h2 {
+  margin: 0;
+  color: var(--chalk);
+  font-family: "Supercell Magic", Inter, sans-serif;
+  font-size: clamp(2rem, 4.5vw, 4rem);
+  line-height: 1;
+}
+
+.info-header p {
+  max-width: 680px;
+  margin: 12px 0 0;
+  color: rgba(245, 241, 231, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.55;
 }
 
 .calc-page {
@@ -4732,7 +4753,7 @@ body.light-mode .top-brand,
 body.light-mode .top-nav button,
 body.light-mode .landing-page,
 body.light-mode .home-copy,
-body.light-mode .developer-page,
+body.light-mode .info-page,
 body.light-mode .desmos-page,
 body.light-mode .study-page,
 body.light-mode .ap-page {
@@ -5110,7 +5131,7 @@ body.light-mode .study-video-frame {
 }
 
 body.light-mode .study-video-meta,
-body.light-mode .study-ap-panel {
+body.light-mode .info-ap-panel {
   border-color: rgba(32, 36, 38, 0.14);
 }
 
@@ -5259,7 +5280,7 @@ body.light-mode .game-over-copy {
     justify-self: start;
   }
 
-  .developer-page,
+  .info-page,
   .desmos-page,
   .study-page,
   .ap-page {
@@ -5284,7 +5305,7 @@ body.light-mode .game-over-copy {
   .desmos-page,
   .study-page,
   .ap-page,
-  .developer-page,
+  .info-page,
   .calc-page,
   .study-thread,
   .study-thread li,

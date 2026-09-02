@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
   <title>The Calculus Website</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
-  <link rel="stylesheet" href="styles.css?v=20260714-9">
+  <link rel="stylesheet" href="styles.css?v=20260902-1">
 </head>
 <body class="desmos-answer-box-hidden">
   <canvas id="vfx" aria-hidden="true"></canvas>
@@ -28,7 +28,7 @@
       <button id="nav-calc" type="button">TI84</button>
       <button id="nav-ap" type="button" hidden>AP</button>
       <button id="nav-study" type="button">Study</button>
-      <button id="nav-developer" type="button">Developer</button>
+      <button id="nav-info" type="button">Info</button>
     </nav>
   </header>
 
@@ -59,7 +59,7 @@
               <i aria-hidden="true"></i>
             </span>
           </button>
-          <button class="landing-orbit-item" type="button" data-home-target="developer" aria-label="Open Developer information">
+          <button class="landing-orbit-item" type="button" data-home-target="info" aria-label="Open Info information">
             <span class="landing-orbit-card landing-orbit-info">
               <span>i</span>
               <strong>information</strong>
@@ -130,16 +130,30 @@
     </div>
   </section>
 
-  <section id="developer-page" class="page developer-page" aria-hidden="true">
-    <div class="developer-profile">
-      <p>This website aims to fulfill the desire to make everyone enrolled in AP Calculus BC get A+ on every tests and acquire a 5 in May. It breaks down how to use Desmos graphing calculator for AP exam, TI84 Calculator for in-class tests, and hopefully Calculus concepts to intuitive level. Calculus may be conceptually easier to understand than Pre-Calculus materials; connecting multiple concepts into one and applying them is what makes it hard for many people. However, every year, around 40% of test takers end up with a 5... Wouldn't it be sorrowful if you fail to enter top 40% in your class? I hope what I created gives some help to people who struggle with math, especially for those who struggle even under the best math teacher ever, Mr O...<br>Your day will come, and you shall find yourself in possession of 5 in July.<br>Made by Jay Jeong(438668@aaps.k12.mi.us).</p>
-    </div>
+  <section id="info-page" class="page info-page" aria-hidden="true">
+    <section class="info-ap-panel" aria-labelledby="info-heading">
+      <header class="info-header">
+        <h2 id="info-heading">AP Calculus BC Information</h2>
+        <p>Data may differ every year. Select a resource to view the official College Board page.</p>
+      </header>
 
-    <div class="developer-mark" aria-hidden="true">
-      <span>&int;</span>
-      <strong>BC</strong>
-    </div>
+      <div class="ap-resource-stack" aria-label="AP Calculus BC information links">
+        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/courses/ap-calculus-bc/assessment" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC general assessment information">
+          <span>General Information</span>
+          <img src="general%20information%20about%20the%20exam.jpg" alt="AP Calculus BC general exam information">
+        </a>
 
+        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution">
+          <span>AP Score Distribution</span>
+          <img src="past%20score%20distribution.jpg" alt="AP Calculus BC score distribution">
+        </a>
+
+        <a class="ap-resource-card" href="https://apcentral.collegeboard.org/courses/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC course page">
+          <span>Score Distribution Per Unit</span>
+          <img src="score%20distribution%20per%20unit.jpg" alt="AP Calculus BC score distribution per unit">
+        </a>
+      </div>
+    </section>
   </section>
 
   <section id="desmos-page" class="page desmos-page" aria-hidden="true">
@@ -419,26 +433,6 @@
       <div id="study-video-grid" class="study-video-grid" aria-label="Essence of Calculus videos"></div>
     </section>
 
-    <section class="study-ap-panel">
-      <div class="ap-resource-stack" aria-label="AP Calculus BC information links">
-        <p class="ap-resource-note">data may differ every year, click to see the official page</p>
-
-        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/courses/ap-calculus-bc/assessment" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC general assessment information">
-          <span>General Information</span>
-          <img src="general%20information%20about%20the%20exam.jpg" alt="AP Calculus BC general exam information">
-        </a>
-
-        <a class="ap-resource-card" href="https://apstudents.collegeboard.org/about-ap-scores/score-distributions/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC score distribution">
-          <span>AP Score Distribution</span>
-          <img src="past%20score%20distribution.jpg" alt="AP Calculus BC score distribution">
-        </a>
-
-        <a class="ap-resource-card" href="https://apcentral.collegeboard.org/courses/ap-calculus-bc" target="_blank" rel="noopener noreferrer" aria-label="Open AP Calculus BC course page">
-          <span>Score Distribution Per Unit</span>
-          <img src="score%20distribution%20per%20unit.jpg" alt="AP Calculus BC score distribution per unit">
-        </a>
-      </div>
-    </section>
   </section>
 
   <section id="calc-page" class="page calc-page" aria-hidden="true">
@@ -656,6 +650,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
   <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=4435f284d2154cf48e80abbbffc842cd"></script>
-  <script src="game.js?v=20260714-9"></script>
+  <script src="game.js?v=20260902-1"></script>
 </body>
 </html>
