@@ -5,7 +5,7 @@ const elements = {
   formulaLayer: document.getElementById("formula-layer"),
   landingPage: document.getElementById("landing-page"),
   homePage: document.getElementById("home-page"),
-  developerPage: document.getElementById("developer-page"),
+  infoPage: document.getElementById("info-page"),
   desmosPage: document.getElementById("desmos-page"),
   studyPage: document.getElementById("study-page"),
   studyVideoWatch: document.getElementById("study-video-watch"),
@@ -26,7 +26,7 @@ const elements = {
   navCalc: document.getElementById("nav-calc"),
   navAP: document.getElementById("nav-ap"),
   navStudy: document.getElementById("nav-study"),
-  navDeveloper: document.getElementById("nav-developer"),
+  navInfo: document.getElementById("nav-info"),
   homeTargetButtons: [...document.querySelectorAll("[data-home-target]")],
   landingOrbitMenu: document.querySelector(".landing-orbit-menu"),
   landingOrbitWheel: document.querySelector(".landing-orbit-wheel"),
@@ -5121,7 +5121,7 @@ function showPage(page) {
   const previousPage = state.page;
   const showingLanding = page === "landing";
   const showingHome = page === "home";
-  const showingDeveloper = page === "developer";
+  const showingInfo = page === "info";
   const showingDesmos = page === "desmos";
   const showingAP = page === "ap";
   const showingStudy = page === "study" || showingAP;
@@ -5135,8 +5135,8 @@ function showPage(page) {
   elements.landingPage.setAttribute("aria-hidden", String(!showingLanding));
   elements.homePage.classList.toggle("active", showingHome);
   elements.homePage.setAttribute("aria-hidden", String(!showingHome));
-  elements.developerPage.classList.toggle("active", showingDeveloper);
-  elements.developerPage.setAttribute("aria-hidden", String(!showingDeveloper));
+  elements.infoPage.classList.toggle("active", showingInfo);
+  elements.infoPage.setAttribute("aria-hidden", String(!showingInfo));
   elements.desmosPage.classList.toggle("active", showingDesmos);
   elements.desmosPage.setAttribute("aria-hidden", String(!showingDesmos));
   elements.studyPage.classList.toggle("active", showingStudy);
@@ -5155,7 +5155,7 @@ function showPage(page) {
   elements.navCalc.classList.toggle("active", showingCalc);
   elements.navAP.classList.toggle("active", false);
   elements.navStudy.classList.toggle("active", showingStudy);
-  elements.navDeveloper.classList.toggle("active", showingDeveloper);
+  elements.navInfo.classList.toggle("active", showingInfo);
 
   setFloatingNumbersPagePaused(!shouldGenerateFloatingNumbers());
 
@@ -5650,7 +5650,7 @@ elements.navDesmos.addEventListener("click", () => leaveGame("desmos"));
 elements.navCalc.addEventListener("click", () => leaveGame("calc"));
 elements.navAP.addEventListener("click", () => leaveGame("ap"));
 elements.navStudy.addEventListener("click", () => leaveGame("study"));
-elements.navDeveloper.addEventListener("click", () => leaveGame("developer"));
+elements.navInfo.addEventListener("click", () => leaveGame("info"));
 elements.homeTargetButtons.forEach((button) => {
   button.addEventListener("click", () => leaveGame(button.dataset.homeTarget || "landing"));
 });
